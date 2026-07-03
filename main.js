@@ -103,6 +103,14 @@
     const historial = [];
     let enviando = false;
 
+    // Id efímero de conversación: solo agrupa los turnos de esta charla para
+    // poder revisarla; se genera de nuevo en cada carga de página, no se
+    // guarda en cookie ni almacenamiento persistente y no identifica al
+    // visitante.
+    const convId = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
     const agregarBurbuja = (texto, clase) => {
       const burbuja = document.createElement('div');
       burbuja.className = clase ? `burbuja ${clase}` : 'burbuja';
@@ -137,7 +145,7 @@
         const respuesta = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: mensaje, history: historial }),
+          body: JSON.stringify({ message: mensaje, history: historial, convId }),
         });
         const datos = await respuesta.json().catch(() => ({}));
         indicador.remove();

@@ -7,9 +7,18 @@
 //
 // Contrato:
 //   POST /api/chat
-//   body:  { message: string, history: Array<{ role: 'user' | 'model', text: string }> }
+//   body:  { message: string, history: Array<{ role: 'user' | 'model', text: string }>, convId?: string }
 //   200:   { reply: string }
 //   4xx/5xx: { error: string }
+//
+// Registro anónimo: si están configuradas UPSTASH_REDIS_REST_URL y
+// UPSTASH_REDIS_REST_TOKEN, cada turno (mensaje + respuesta) se agrega a una
+// lista en Upstash Redis para poder revisar y mejorar al Guardián. No se
+// guarda IP, cookie ni ningún dato que identifique al visitante; `convId` es
+// un id aleatorio generado en el navegador, efímero (dura lo que dura la
+// pestaña), que solo sirve para agrupar los turnos de una misma charla. Si
+// Upstash no está configurado o falla, el registro se omite en silencio y no
+// afecta la respuesta al visitante.
 
 const { SYSTEM_INSTRUCTION } = require('../lib/guardian-system-prompt');
 
@@ -18,6 +27,33 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_HISTORY_TURNS = 40;
+const CONV_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+
+async function registrarTurno(convId, mensaje, respuesta) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return;
+
+  const entrada = JSON.stringify({
+    ts: new Date().toISOString(),
+    conv: typeof convId === 'string' && CONV_ID_PATTERN.test(convId) ? convId : null,
+    mensaje,
+    respuesta,
+  });
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(['RPUSH', 'guardian:conversaciones', entrada]),
+    });
+  } catch (err) {
+    console.error('No se pudo registrar el turno en Upstash:', err.message);
+  }
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -32,7 +68,7 @@ module.exports = async (req, res) => {
   }
 
   const body = req.body || {};
-  const { message, history } = body;
+  const { message, history, convId } = body;
 
   if (typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Falta el mensaje.' });
@@ -102,6 +138,8 @@ module.exports = async (req, res) => {
     console.error('Respuesta de Gemini sin texto utilizable:', JSON.stringify(data).slice(0, 500));
     return res.status(502).json({ error: 'El Guardián no pudo generar una respuesta. Probá reformular tu pregunta.' });
   }
+
+  await registrarTurno(convId, message, reply);
 
   return res.status(200).json({ reply });
 };
