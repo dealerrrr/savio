@@ -6,5 +6,7 @@ node_modules
 
 # Material interno, no se publica en el repo.
 /documentos/
+documentos
 CLAUDE.md
 Karpathy.md
+REVISION-GUARDIAN.md
