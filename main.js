@@ -160,6 +160,57 @@
     });
   }
 
+  // 6. Formulario de /entrevista/: envía por fetch a /api/entrevista.
+  const formEntrevista = document.getElementById('form-entrevista');
+  if (formEntrevista) {
+    const boton = formEntrevista.querySelector('button[type="submit"]');
+    const mensaje = formEntrevista.querySelector('.mensaje-estado');
+    let enviandoForm = false;
+
+    const mostrarMensaje = (texto, clase) => {
+      if (!mensaje) return;
+      mensaje.textContent = texto;
+      mensaje.className = clase ? `mensaje-estado ${clase}` : 'mensaje-estado';
+      mensaje.hidden = false;
+    };
+
+    formEntrevista.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (enviandoForm) return;
+
+      const nombre = formEntrevista.nombre.value.trim();
+      const email = formEntrevista.email.value.trim();
+      const whatsapp = formEntrevista.whatsapp.value.trim();
+      const mayorEdad = formEntrevista.mayorEdad.checked;
+
+      enviandoForm = true;
+      if (boton) boton.disabled = true;
+      mostrarMensaje('Enviando…');
+
+      try {
+        const respuesta = await fetch('/api/entrevista', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, whatsapp, mayorEdad }),
+        });
+        const datos = await respuesta.json().catch(() => ({}));
+
+        if (!respuesta.ok || !datos.ok) {
+          mostrarMensaje(datos.error || 'No se pudo enviar el pedido. Probá de nuevo en un momento.', 'mensaje-estado--error');
+          return;
+        }
+
+        mostrarMensaje('Listo. Te vamos a contactar a la brevedad para coordinar la charla.', 'mensaje-estado--ok');
+        formEntrevista.reset();
+      } catch (err) {
+        mostrarMensaje('No se pudo conectar. Revisá tu conexión y probá de nuevo.', 'mensaje-estado--error');
+      } finally {
+        enviandoForm = false;
+        if (boton) boton.disabled = false;
+      }
+    });
+  }
+
   // Enlaces externos: siempre en pestaña nueva.
   const host = window.location.hostname;
   document.querySelectorAll('a[href^="http"]').forEach((a) => {

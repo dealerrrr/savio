@@ -296,6 +296,28 @@ p.puente{color:var(--c-text);font-family:var(--f-serif);font-weight:600;font-siz
 .privacidad a{color:var(--c-accent-2);text-decoration:underline}
 .privacidad .vigencia{color:var(--c-faint);font-size:var(--t-small);font-style:italic;margin-top:var(--sp-6)}
 
+/* --- Página de entrevista (formulario) --- */
+.entrevista .bajada{max-width:none}
+.form-entrevista{max-width:420px;margin-top:var(--sp-6)}
+.campo{margin-bottom:var(--sp-4)}
+.campo label{display:block;font-size:var(--t-small);color:var(--c-muted);margin-bottom:var(--sp-2)}
+.campo input{
+  width:100%;background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);
+  color:var(--c-text);font-family:var(--f-sans);font-size:16px;padding:13px 14px;
+}
+.campo input::placeholder{color:#5f6772}
+.campo-check{
+  display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-5);
+  font-size:var(--t-small);color:var(--c-muted);cursor:pointer;
+}
+.campo-check input{width:16px;height:16px;flex:0 0 auto;accent-color:var(--c-accent)}
+.form-entrevista .boton{width:100%;text-align:center}
+.consentimiento{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint)}
+.consentimiento a{color:var(--c-accent-2);text-decoration:underline}
+.mensaje-estado{margin-top:var(--sp-4);font-size:15px}
+.mensaje-estado--ok{color:var(--c-accent-2)}
+.mensaje-estado--error{color:#d98b7a}
+
 /* --- Botón flotante Guardián --- */
 .fab-guardian{
   position:fixed;right:var(--sp-5);bottom:calc(var(--sp-5) + env(safe-area-inset-bottom));z-index:60;
