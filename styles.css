@@ -289,6 +289,13 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
 .nota-fase{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint);font-style:italic;text-align:center}
 p.puente{color:var(--c-text);font-family:var(--f-serif);font-weight:600;font-size:25px;line-height:1.4;margin-top:var(--sp-7)}
 
+/* --- Página de privacidad --- */
+.privacidad h2{font-size:22px;margin:var(--sp-7) 0 var(--sp-3)}
+.privacidad p{color:var(--c-muted);font-size:17px;margin-bottom:var(--sp-4)}
+.privacidad p strong{color:var(--c-text)}
+.privacidad a{color:var(--c-accent-2);text-decoration:underline}
+.privacidad .vigencia{color:var(--c-faint);font-size:var(--t-small);font-style:italic;margin-top:var(--sp-6)}
+
 /* --- Botón flotante Guardián --- */
 .fab-guardian{
   position:fixed;right:var(--sp-5);bottom:calc(var(--sp-5) + env(safe-area-inset-bottom));z-index:60;
