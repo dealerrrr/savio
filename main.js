@@ -1,6 +1,13 @@
 (() => {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // 1. Analítica (Umami, sin cookies): no-op si el script no cargó o está bloqueado.
+  const track = (evento, datos) => {
+    if (window.umami && typeof window.umami.track === 'function') {
+      window.umami.track(evento, datos);
+    }
+  };
+
   const hero = document.getElementById('hero');
 
   // 2. Botón flotante «Preguntale al Guardián».
@@ -46,55 +53,72 @@
   const hamburguesa = document.querySelector('.hamburguesa');
   const panelMovil = document.getElementById('panel-movil');
   if (hamburguesa && panelMovil) {
+    const cerrarPanel = () => {
+      hamburguesa.setAttribute('aria-expanded', 'false');
+      panelMovil.hidden = true;
+    };
+
     hamburguesa.addEventListener('click', () => {
       const abierto = hamburguesa.getAttribute('aria-expanded') === 'true';
       hamburguesa.setAttribute('aria-expanded', String(!abierto));
       panelMovil.hidden = abierto;
     });
-  }
 
-  document.querySelectorAll('.nav-desplegable__trigger').forEach((trigger) => {
-    const panelId = trigger.getAttribute('aria-controls');
-    const panel = document.getElementById(panelId);
-    if (!panel) return;
-
-    const alternar = () => {
-      const abierto = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', String(!abierto));
-      panel.hidden = abierto;
-    };
-
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      alternar();
+    // Las anclas navegan dentro de la misma página: cerrar el panel al elegir.
+    panelMovil.querySelectorAll('a').forEach((enlace) => {
+      enlace.addEventListener('click', cerrarPanel);
     });
-  });
 
-  document.addEventListener('click', (e) => {
-    document.querySelectorAll('.nav-desplegable__trigger[aria-expanded="true"]').forEach((trigger) => {
-      if (trigger.contains(e.target)) return;
-      const panel = document.getElementById(trigger.getAttribute('aria-controls'));
-      if (panel && !panel.contains(e.target)) {
-        trigger.setAttribute('aria-expanded', 'false');
-        panel.hidden = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && hamburguesa.getAttribute('aria-expanded') === 'true') {
+        cerrarPanel();
       }
     });
+  }
+
+  // 5. Analítica del embudo de la landing.
+  // Primera vista de cada sección: dónde llega y dónde abandona el visitante.
+  // rootMargin en lugar de threshold: las secciones son más altas que el
+  // viewport y nunca llegarían a un porcentaje de visibilidad de sí mismas.
+  document.querySelectorAll('#verdad, #legado, #guardian').forEach((seccion) => {
+    const observador = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        track('seccion_vista', { seccion: seccion.id });
+        observador.disconnect();
+      }
+    }, { rootMargin: '0px 0px -30% 0px' });
+    observador.observe(seccion);
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    document.querySelectorAll('.nav-desplegable__trigger[aria-expanded="true"]').forEach((trigger) => {
-      trigger.setAttribute('aria-expanded', 'false');
-      const panel = document.getElementById(trigger.getAttribute('aria-controls'));
-      if (panel) panel.hidden = true;
+  const ctaHero = document.querySelector('.hero a.boton');
+  if (ctaHero) {
+    ctaHero.addEventListener('click', () => track('cta_hero'));
+  }
+
+  // Qué mito atrae más lecturas.
+  document.querySelectorAll('details[name="faq"]').forEach((faq) => {
+    faq.addEventListener('toggle', () => {
+      if (!faq.open) return;
+      const resumen = faq.querySelector('summary');
+      track('faq_abierta', { pregunta: resumen ? resumen.textContent.trim() : '' });
     });
-    if (hamburguesa && hamburguesa.getAttribute('aria-expanded') === 'true') {
-      hamburguesa.setAttribute('aria-expanded', 'false');
-      panelMovil.hidden = true;
-    }
   });
 
-  // 5. Chat del Guardián: habilita el formulario y conecta con /api/chat.
+  // Qué CTA lleva al Guardián.
+  document.querySelectorAll('a[href="#guardian"], a[href="/#guardian"]').forEach((enlace) => {
+    enlace.addEventListener('click', () => {
+      track('guardian_cta_click', { origen: enlace.classList.contains('fab-guardian') ? 'flotante' : 'menu' });
+    });
+  });
+
+  // Conversiones alternativas al formulario.
+  document.querySelectorAll('a[href^="tel:"], a[href^="mailto:"]').forEach((enlace) => {
+    enlace.addEventListener('click', () => {
+      track('contacto_click', { tipo: enlace.getAttribute('href').startsWith('tel:') ? 'telefono' : 'email' });
+    });
+  });
+
+  // 6. Chat del Guardián: habilita el formulario y conecta con /api/chat.
   const chatForm = document.querySelector('.chat-pie');
   const chatCuerpo = document.querySelector('.chat-cuerpo');
   if (chatForm && chatCuerpo) {
@@ -136,6 +160,9 @@
       const mensaje = chatInput.value.trim();
       if (!mensaje) return;
 
+      if (historial.length === 0) track('guardian_primer_mensaje');
+      track('guardian_mensaje');
+
       agregarBurbuja(mensaje, 'burbuja--visitante');
       chatInput.value = '';
       alternarEnvio(true);
@@ -158,6 +185,9 @@
         agregarBurbuja(datos.reply);
         historial.push({ role: 'user', text: mensaje });
         historial.push({ role: 'model', text: datos.reply });
+
+        // Micro-conversión clave: el Guardián derivó al formulario de entrevista.
+        if (/entrevista/i.test(datos.reply)) track('guardian_derivacion');
       } catch (err) {
         indicador.remove();
         agregarBurbuja('No se pudo conectar con el Guardián. Revisá tu conexión y probá de nuevo.');
@@ -168,9 +198,12 @@
     });
   }
 
-  // 6. Formulario de /entrevista/: envía por fetch a /api/entrevista.
+  // 7. Formulario de /entrevista/: envía por fetch a /api/entrevista.
   const formEntrevista = document.getElementById('form-entrevista');
   if (formEntrevista) {
+    // Empezó a completar: la brecha inicio→envío mide si el formulario espanta.
+    formEntrevista.addEventListener('focusin', () => track('form_inicio'), { once: true });
+
     const boton = formEntrevista.querySelector('button[type="submit"]');
     const mensaje = formEntrevista.querySelector('.mensaje-estado');
     let enviandoForm = false;
@@ -204,13 +237,16 @@
         const datos = await respuesta.json().catch(() => ({}));
 
         if (!respuesta.ok || !datos.ok) {
+          track('form_error');
           mostrarMensaje(datos.error || 'No se pudo enviar el pedido. Probá de nuevo en un momento.', 'mensaje-estado--error');
           return;
         }
 
+        track('form_envio');
         mostrarMensaje('Listo. Te vamos a contactar a la brevedad para coordinar la charla.', 'mensaje-estado--ok');
         formEntrevista.reset();
       } catch (err) {
+        track('form_error');
         mostrarMensaje('No se pudo conectar. Revisá tu conexión y probá de nuevo.', 'mensaje-estado--error');
       } finally {
         enviandoForm = false;

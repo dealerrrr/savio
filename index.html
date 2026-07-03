@@ -38,6 +38,9 @@
 <link rel="preload" href="assets/templo_hero.webp" as="image" fetchpriority="high">
 <link rel="stylesheet" href="styles.css">
 
+<!-- Umami Analytics: sin cookies ni datos personales -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="ec7ce83b-34ca-4c03-8b87-ac296009bf0c"></script>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -168,18 +171,8 @@
     </a>
     <nav class="nav-principal" aria-label="Navegación principal">
       <ul>
-        <li class="nav-desplegable">
-          <button type="button" class="nav-desplegable__trigger" aria-expanded="false" aria-controls="menu-legado">
-            Legado
-          </button>
-          <ul id="menu-legado" class="nav-desplegable__panel" hidden>
-            <li><a href="/legado/san-nicolas/">En San Nicolás</a></li>
-            <li><a href="/legado/argentina/">En la Argentina</a></li>
-            <li><a href="/legado/mundo/">En el mundo</a></li>
-          </ul>
-        </li>
-        <li><a href="/pensamiento/">Pensamiento</a></li>
-        <li><a href="/archivo/">Archivo</a></li>
+        <li><a href="#verdad">Preguntas incómodas</a></li>
+        <li><a href="#legado">El legado</a></li>
       </ul>
     </nav>
     <a href="#guardian" class="boton linea nav-guardian">Preguntale al Guardián</a>
@@ -189,18 +182,8 @@
   </div>
   <nav id="panel-movil" class="panel-movil" aria-label="Navegación móvil" hidden>
     <a href="#guardian" class="boton linea">Preguntale al Guardián</a>
-    <div class="nav-desplegable nav-desplegable--movil">
-      <button type="button" class="nav-desplegable__trigger" aria-expanded="false" aria-controls="menu-legado-movil">
-        Legado
-      </button>
-      <ul id="menu-legado-movil" class="nav-desplegable__panel" hidden>
-        <li><a href="/legado/san-nicolas/">En San Nicolás</a></li>
-        <li><a href="/legado/argentina/">En la Argentina</a></li>
-        <li><a href="/legado/mundo/">En el mundo</a></li>
-      </ul>
-    </div>
-    <a href="/pensamiento/">Pensamiento</a>
-    <a href="/archivo/">Archivo</a>
+    <a href="#verdad">Preguntas incómodas</a>
+    <a href="#legado">El legado</a>
   </nav>
 </header>
 
