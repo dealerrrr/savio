@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Isotipo Logia Ingeniero Manuel Savio Nº 567">
+  <g fill="none" stroke="#b08d4f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 10 L12.5 37"/>
+    <path d="M24 10 L35.5 37"/>
+    <circle cx="24" cy="8.2" r="2.7"/>
+    <path d="M9.5 22.5 L24 37 L38.5 22.5"/>
+  </g>
+  <path d="M24 22 C24 22 27.1 26.2 27.1 28.4 A3.1 3.1 0 1 1 20.9 28.4 C20.9 26.2 24 22 24 22 Z" fill="#c9a868"/>
+</svg>

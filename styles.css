@@ -1,0 +1,337 @@
+/* =========================================================================
+   LOGIA SAVIO · SISTEMA DE DISEÑO + ESTILOS
+   Sitio estático (Vercel/GitHub). Fuente única de verdad del estilo.
+   Orden: 1) Tokens · 2) Base · 3) Layout · 4) Componentes · 5) A11y · 6) Responsive
+   Derivado del cap. 02 (identidad) y cap. 04 (UX/UI) del playbook.
+   ========================================================================= */
+
+/* ============================ 0. FUENTES (self-hosted) ================= */
+@font-face{
+  font-family:'Cormorant Garamond';
+  font-style:normal;font-weight:600;font-display:swap;
+  src:url('assets/fonts/cormorant-600-latin.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Inter';
+  font-style:normal;font-weight:300 500;font-display:swap;
+  src:url('assets/fonts/inter-latin-var.woff2') format('woff2');
+}
+
+/* ============================ 1. TOKENS ================================= */
+:root{
+  /* --- Color (semántico) --- */
+  --c-bg:        #0c0e13;   /* fondo noche */
+  --c-surface-1: #161a22;   /* paneles */
+  --c-surface-2: #1f242f;   /* elevado */
+  --c-border:    #2c323e;   /* líneas y bordes */
+  --c-text:      #ece9e2;   /* texto principal (hueso) */
+  --c-muted:     #9aa1ad;   /* texto secundario */
+  --c-faint:     #6f7682;   /* texto terciario / fuentes */
+  --c-accent:    #b08d4f;   /* oro opaco */
+  --c-accent-2:  #c9a868;   /* oro claro (hover) */
+
+  /* --- Tipografía --- */
+  --f-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --f-sans:  "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Escala fluida (mobile -> desktop) */
+  --t-display: clamp(38px, 6vw, 58px);   /* H1 hero */
+  --t-h2:      clamp(30px, 4vw, 40px);    /* títulos de sección */
+  --t-body:    18px;
+  --t-small:   14px;
+  --t-eyebrow: 12px;
+
+  --lh-tight: 1.15;   /* titulares */
+  --lh-body:  1.75;   /* cuerpo */
+
+  /* --- Espaciado (base 4px) --- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 104px;
+
+  /* --- Layout --- */
+  --ancho-texto: 720px;
+  --bp: 680px;          /* breakpoint único (referencial) */
+
+  /* --- Radios / sombras / motion --- */
+  --r-sm: 6px;          /* botones, inputs */
+  --r-md: 10px;         /* chat */
+  --sombra-lg: 0 24px 60px rgba(0,0,0,.45);
+  --trans: .2s ease;
+}
+
+/* ============================ 2. BASE ================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scrollbar-color:var(--c-border) var(--c-bg)}
+
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--c-bg)}
+::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:6px;border:2px solid var(--c-bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--c-accent)}
+
+body{
+  background:var(--c-bg);
+  color:var(--c-text);
+  font-family:var(--f-sans);
+  font-weight:300;
+  font-size:var(--t-body);
+  line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+h1,h2,h3{font-family:var(--f-serif);font-weight:600;line-height:var(--lh-tight);letter-spacing:.2px}
+a{color:inherit;transition:color var(--trans)}
+img{max-width:100%;display:block}
+
+/* ============================ 3. LAYOUT =============================== */
+.contenedor{width:100%;max-width:var(--ancho-texto);margin:0 auto;padding:0 var(--sp-5)}
+
+section{padding:var(--sp-8) 0;border-bottom:1px solid var(--c-border);scroll-margin-top:60px}
+.titulo-seccion{font-size:var(--t-h2);margin-bottom:var(--sp-3)}
+.bajada{color:var(--c-muted);font-size:18px;max-width:560px;margin-bottom:var(--sp-7)}
+
+/* ============================ 4. COMPONENTES ========================== */
+
+/* --- Eyebrow / overline --- */
+.overline{
+  display:block;
+  font-family:var(--f-sans);
+  font-size:var(--t-eyebrow);font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--c-accent);
+  margin-bottom:var(--sp-3);
+}
+.hero .overline{margin-bottom:0}
+
+/* --- Header --- */
+header.barra{
+  position:sticky;top:0;z-index:50;
+  background:rgba(12,14,19,.82);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--c-border);
+}
+.barra .contenedor{display:flex;align-items:center;gap:var(--sp-3);height:60px}
+.marca-link{display:flex;flex:0 0 auto}
+.nav-principal{flex:1}
+.nav-principal>ul{display:flex;align-items:center;gap:var(--sp-6);list-style:none}
+.nav-principal a,
+.nav-principal>ul>li>button{
+  font-family:var(--f-sans);font-size:15px;color:var(--c-text);
+  text-decoration:none;background:none;border:0;cursor:pointer;padding:0;
+}
+.nav-principal a:hover,
+.nav-principal>ul>li>button:hover{color:var(--c-accent-2)}
+.nav-guardian{
+  margin-left:auto;line-height:1;padding:10px 20px;font-size:14px;
+}
+
+/* --- Desplegable Legado --- */
+.nav-desplegable{position:relative}
+.nav-desplegable__panel{
+  position:absolute;top:calc(100% + var(--sp-3));left:0;min-width:200px;
+  background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);
+  list-style:none;padding:var(--sp-2) 0;box-shadow:var(--sombra-lg);
+}
+.nav-desplegable__panel[hidden]{display:none}
+.nav-desplegable__panel li a{display:block;padding:var(--sp-2) var(--sp-4);white-space:nowrap}
+.nav-desplegable__panel li a:hover{background:var(--c-surface-2)}
+
+/* --- Hamburguesa (móvil) --- */
+.hamburguesa{
+  display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;
+  padding:var(--sp-2);margin-left:auto;
+}
+.hamburguesa span{display:block;width:22px;height:2px;background:var(--c-text)}
+.panel-movil{display:none}
+
+@media (max-width:679px){
+  .nav-principal,header.barra .nav-guardian{display:none}
+  .hamburguesa{display:flex}
+  .panel-movil{
+    display:flex;flex-direction:column;gap:var(--sp-4);
+    background:var(--c-surface-1);border-top:1px solid var(--c-border);
+    padding:var(--sp-5);
+  }
+  .panel-movil[hidden]{display:none}
+  .panel-movil a{font-family:var(--f-sans);color:var(--c-text);text-decoration:none}
+  .nav-desplegable--movil .nav-desplegable__panel{position:static;box-shadow:none;margin-top:var(--sp-2)}
+}
+.iso{width:30px;height:30px;flex:0 0 auto}
+
+/* --- Botones --- */
+.boton{
+  display:inline-block;font-family:var(--f-sans);font-weight:500;
+  font-size:15px;letter-spacing:.3px;
+  color:var(--c-bg);background:var(--c-accent);
+  padding:15px 30px;border-radius:var(--r-sm);border:0;cursor:pointer;
+  text-decoration:none;transition:background var(--trans), transform var(--trans);
+}
+.boton:hover{background:var(--c-accent-2)}
+.boton.linea{background:transparent;color:var(--c-accent);border:1px solid var(--c-accent)}
+.boton.linea:hover{background:rgba(176,141,79,.1)}
+
+/* --- Hero --- */
+.hero{
+  min-height:88vh;display:flex;align-items:center;
+  border-bottom:1px solid var(--c-border);
+  background-color:var(--c-bg);
+  /* Foto del templo (hora azul) bajo velos oscuros (variante B): denso arriba para el texto,
+     liviano abajo para que respiren el resplandor de la puerta y la "G". Leve sesgo a la
+     izquierda. El orden importa: los degradados van primero (encima); la foto, última (debajo). */
+  background-image:
+    radial-gradient(900px 650px at 32% 46%, rgba(12,14,19,.5), transparent 68%),
+    linear-gradient(180deg, rgba(12,14,19,.46) 0%, rgba(12,14,19,.18) 100%),
+    linear-gradient(90deg,  rgba(12,14,19,.11) 0%, rgba(12,14,19,0) 100%),
+    radial-gradient(1200px 600px at 50% 55%, rgba(201,168,104,.18), transparent 65%),
+    url('assets/templo_hero.webp');
+  background-size:cover;background-position:center;
+}
+.hero .contenedor{padding-top:var(--sp-8);padding-bottom:var(--sp-8)}
+.hero h1{font-size:var(--t-display);margin:var(--sp-5) 0 var(--sp-5);max-width:640px;text-shadow:0 2px 16px rgba(0,0,0,.55)}
+.hero p.sub{font-size:19px;color:var(--c-muted);max-width:580px;margin-bottom:var(--sp-7);text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.hero .overline{text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.hero p.sub strong{color:var(--c-text);font-weight:400}
+.hero{position:relative}
+.scroll-hint{
+  position:absolute;left:50%;bottom:var(--sp-6);transform:translateX(-50%);
+  color:var(--c-accent);opacity:.85;transition:opacity var(--trans);
+  animation:rebote 2.2s ease-in-out infinite;
+}
+.scroll-hint:hover,.scroll-hint:focus-visible{opacity:1}
+.scroll-hint.oculto{opacity:0;pointer-events:none}
+@keyframes rebote{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(6px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .scroll-hint{animation:none}
+}
+
+/* --- Acordeón (details/summary, sin JS) --- */
+details{border-top:1px solid var(--c-border);padding:var(--sp-1) 0}
+details:last-of-type{border-bottom:1px solid var(--c-border)}
+summary{
+  list-style:none;cursor:pointer;
+  font-family:var(--f-serif);font-size:24px;font-weight:600;
+  padding:var(--sp-5) 44px var(--sp-5) 0;position:relative;transition:color var(--trans);
+}
+summary::-webkit-details-marker{display:none}
+summary:hover{color:var(--c-accent-2)}
+summary::after{
+  content:"+";position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  font-family:var(--f-sans);font-weight:300;font-size:28px;color:var(--c-accent);
+}
+details[open] summary::after{content:"\2013"} /* en dash */
+.respuesta{padding:0 30px var(--sp-5) 0;color:var(--c-muted);font-size:18px}
+.respuesta p + p{margin-top:var(--sp-4)}
+
+figure{margin:var(--sp-6) 0}
+figure img{
+  display:block;width:100%;height:auto;
+  border:1px solid rgba(176,141,79,.35);border-radius:var(--r-sm);
+  box-shadow:var(--sombra-lg);
+}
+figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-faint);font-style:italic}
+.figura-retrato{max-width:300px}
+/* Bloque Savio: retrato flotante, el texto lo rodea y ocupa todo el ancho
+   una vez que supera la base de la imagen (comportamiento nativo de float,
+   no replicable con grid/flex). */
+.savio-bloque{overflow:hidden}
+@media (min-width:680px){
+  .savio-bloque .figura-retrato{float:right;max-width:none;width:240px;margin:0 0 var(--sp-5) var(--sp-6)}
+}
+
+/* --- Legado --- */
+.legado .bajada{max-width:none}
+.legado p{color:var(--c-muted);font-size:18px;margin-bottom:var(--sp-5)}
+.legado p strong{color:var(--c-text);font-weight:500}
+.legado-sub{font-family:var(--f-serif);font-weight:500;font-size:26px;line-height:1.3;color:var(--c-text);margin:var(--sp-7) 0 var(--sp-3)}
+
+/* --- Guardián / chat --- */
+.guardian{background:linear-gradient(180deg,#0e1118 0%, var(--c-bg) 100%)}
+.guardian .contenedor{max-width:640px;text-align:center}
+.guardian .bajada{margin:0 auto var(--sp-7)}
+.chat{
+  text-align:left;background:var(--c-surface-1);
+  border:1px solid var(--c-border);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sombra-lg);
+}
+.chat-cabe{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--c-border);background:var(--c-surface-2)}
+.chat-cabe .iso{width:26px;height:26px}
+.chat-cabe b{font-family:var(--f-serif);font-size:18px;font-weight:600}
+.chat-cabe small{display:block;color:var(--c-muted);font-size:12px;font-family:var(--f-sans)}
+.chat-cuerpo{padding:var(--sp-6) var(--sp-5)}
+.burbuja{
+  background:var(--c-surface-2);border:1px solid var(--c-border);
+  border-radius:4px 14px 14px 14px;padding:var(--sp-4) var(--sp-4);
+  font-size:17px;color:var(--c-text);max-width:90%;white-space:pre-wrap;
+}
+.burbuja + .burbuja{margin-top:var(--sp-3)}
+.burbuja--visitante{
+  margin-left:auto;background:var(--c-accent);border-color:var(--c-accent);
+  color:var(--c-bg);border-radius:14px 4px 14px 14px;
+}
+.burbuja--cargando{color:var(--c-muted);font-style:italic;animation:guardian-pulso 1.4s ease-in-out infinite}
+@keyframes guardian-pulso{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion: reduce){
+  .burbuja--cargando{animation:none}
+}
+.chat-pie{display:flex;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--c-border);background:var(--c-surface-2)}
+.chat-pie input{
+  flex:1;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--r-sm);
+  color:var(--c-text);font-family:var(--f-sans);font-size:15px;padding:13px 14px;
+}
+.chat-pie input::placeholder{color:#5f6772}
+.chat-pie button{
+  background:var(--c-accent);border:0;border-radius:var(--r-sm);color:var(--c-bg);
+  font-family:var(--f-sans);font-weight:500;padding:0 20px;cursor:pointer;
+  transition:background var(--trans), opacity var(--trans);
+}
+.chat-pie button:hover:not(:disabled){background:var(--c-accent-2)}
+.chat-pie button:disabled{cursor:not-allowed;opacity:.65}
+.nota-fase{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint);font-style:italic;text-align:center}
+p.puente{color:var(--c-text);font-family:var(--f-serif);font-weight:600;font-size:25px;line-height:1.4;margin-top:var(--sp-7)}
+
+/* --- Botón flotante Guardián --- */
+.fab-guardian{
+  position:fixed;right:var(--sp-5);bottom:calc(var(--sp-5) + env(safe-area-inset-bottom));z-index:60;
+  background:var(--c-accent);color:var(--c-bg);font-family:var(--f-sans);font-weight:500;font-size:14px;
+  padding:13px 22px;border-radius:var(--r-sm);text-decoration:none;box-shadow:var(--sombra-lg);
+  opacity:0;pointer-events:none;transition:opacity var(--trans), background var(--trans);
+}
+.fab-guardian.visible{opacity:1;pointer-events:auto}
+.fab-guardian:hover{background:var(--c-accent-2)}
+
+/* --- Footer --- */
+footer{padding:var(--sp-7) 0;border-bottom:0}
+footer .contenedor{color:var(--c-muted);font-size:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--sp-2)}
+footer .footer-marca{display:flex;align-items:center;gap:var(--sp-2);font-size:17px;color:var(--c-text);margin-bottom:var(--sp-1)}
+footer p{margin:0}
+footer a{text-decoration:none}
+footer a:hover{color:var(--c-accent-2)}
+footer .logias{margin-top:var(--sp-2);color:var(--c-faint);font-size:var(--t-small)}
+
+/* ============================ 5. ACCESIBILIDAD ======================= */
+/* Skip-link */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:100;
+  background:var(--c-accent);color:var(--c-bg);
+  padding:12px 18px;border-radius:var(--r-sm);font-weight:500;
+}
+.skip-link:focus{left:var(--sp-4);top:var(--sp-4)}
+
+/* Foco visible y consistente */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible{
+  outline:2px solid var(--c-accent-2);
+  outline-offset:3px;
+  border-radius:var(--r-sm);
+}
+
+/* ============================ 6. RESPONSIVE / MOTION ================= */
+@media (min-width:680px){
+  section{padding:var(--sp-9) 0}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none !important}
+}

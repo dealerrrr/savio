@@ -1,0 +1,29 @@
+# lasavio.com.ar
+# Rastreo abierto: el contenido de este sitio existe para ser encontrado y citado.
+
+User-agent: *
+Allow: /
+
+# Buscadores de IA, bienvenidos (GEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://lasavio.com.ar/sitemap.xml
