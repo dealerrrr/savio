@@ -21,6 +21,7 @@
 // afecta la respuesta al visitante.
 
 const { SYSTEM_INSTRUCTION } = require('../lib/guardian-system-prompt');
+const { verificarTurnstile } = require('../lib/turnstile');
 
 const GEMINI_MODEL = 'gemini-3.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -68,13 +69,19 @@ module.exports = async (req, res) => {
   }
 
   const body = req.body || {};
-  const { message, history, convId } = body;
+  const { message, history, convId, turnstileToken } = body;
 
   if (typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Falta el mensaje.' });
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return res.status(400).json({ error: `El mensaje supera los ${MAX_MESSAGE_LENGTH} caracteres.` });
+  }
+
+  const remoteip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || undefined;
+  const verificacion = await verificarTurnstile(turnstileToken, remoteip);
+  if (!verificacion.ok) {
+    return res.status(403).json({ error: verificacion.error });
   }
 
   let safeHistory = [];

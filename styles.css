@@ -286,6 +286,7 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
 }
 .chat-pie button:hover:not(:disabled){background:var(--c-accent-2)}
 .chat-pie button:disabled{cursor:not-allowed;opacity:.65}
+.turnstile-chat{padding:var(--sp-3) var(--sp-4);background:var(--c-surface-2)}
 .nota-fase{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint);font-style:italic;text-align:center}
 p.puente{color:var(--c-text);font-family:var(--f-serif);font-weight:600;font-size:25px;line-height:1.4;margin-top:var(--sp-7)}
 
@@ -311,6 +312,7 @@ p.puente{color:var(--c-text);font-family:var(--f-serif);font-weight:600;font-siz
   font-size:var(--t-small);color:var(--c-muted);cursor:pointer;
 }
 .campo-check input{width:16px;height:16px;flex:0 0 auto;accent-color:var(--c-accent)}
+.cf-turnstile{margin-bottom:var(--sp-5)}
 .form-entrevista .boton{width:100%;text-align:center}
 .consentimiento{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint)}
 .consentimiento a{color:var(--c-accent-2);text-decoration:underline}

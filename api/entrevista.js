@@ -18,6 +18,8 @@
 //   200:   { ok: true }
 //   4xx/5xx: { error: string }
 
+const { verificarTurnstile } = require('../lib/turnstile');
+
 const RESEND_URL = 'https://api.resend.com/emails';
 const CONTACTO_EMAIL_DEFAULT = 'info@lasavio.com.ar';
 
@@ -47,6 +49,7 @@ module.exports = async (req, res) => {
   const email = typeof body.email === 'string' ? body.email.trim() : '';
   const whatsapp = typeof body.whatsapp === 'string' ? body.whatsapp.trim() : '';
   const mayorEdad = body.mayorEdad === true;
+  const turnstileToken = body.turnstileToken;
 
   if (!nombre || nombre.length > MAX_NOMBRE) {
     return res.status(400).json({ error: 'El nombre es obligatorio.' });
@@ -59,6 +62,12 @@ module.exports = async (req, res) => {
   }
   if (!mayorEdad) {
     return res.status(400).json({ error: 'Este espacio es para mayores de edad.' });
+  }
+
+  const remoteip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || undefined;
+  const verificacion = await verificarTurnstile(turnstileToken, remoteip);
+  if (!verificacion.ok) {
+    return res.status(403).json({ error: verificacion.error });
   }
 
   const asunto = `Pedido de charla — ${nombre}`;

@@ -168,11 +168,13 @@
       alternarEnvio(true);
       const indicador = agregarBurbuja('Escribiendo…', 'burbuja--cargando');
 
+      const turnstileToken = window.turnstile ? window.turnstile.getResponse() : undefined;
+
       try {
         const respuesta = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: mensaje, history: historial, convId }),
+          body: JSON.stringify({ message: mensaje, history: historial, convId, turnstileToken }),
         });
         const datos = await respuesta.json().catch(() => ({}));
         indicador.remove();
@@ -192,6 +194,7 @@
         indicador.remove();
         agregarBurbuja('No se pudo conectar con el Guardián. Revisá tu conexión y probá de nuevo.');
       } finally {
+        if (window.turnstile) window.turnstile.reset();
         alternarEnvio(false);
         chatInput.focus({ preventScroll: true });
       }
@@ -224,6 +227,8 @@
       const whatsapp = formEntrevista.whatsapp.value.trim();
       const mayorEdad = formEntrevista.mayorEdad.checked;
 
+      const turnstileToken = window.turnstile ? window.turnstile.getResponse() : undefined;
+
       enviandoForm = true;
       if (boton) boton.disabled = true;
       mostrarMensaje('Enviando…');
@@ -232,7 +237,7 @@
         const respuesta = await fetch('/api/entrevista', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, email, whatsapp, mayorEdad }),
+          body: JSON.stringify({ nombre, email, whatsapp, mayorEdad, turnstileToken }),
         });
         const datos = await respuesta.json().catch(() => ({}));
 
@@ -249,6 +254,7 @@
         track('form_error');
         mostrarMensaje('No se pudo conectar. Revisá tu conexión y probá de nuevo.', 'mensaje-estado--error');
       } finally {
+        if (window.turnstile) window.turnstile.reset();
         enviandoForm = false;
         if (boton) boton.disabled = false;
       }
