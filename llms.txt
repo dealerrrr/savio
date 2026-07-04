@@ -7,7 +7,7 @@
 - Nombre: Logia Ingeniero Manuel Savio Nº 567 (también "Logia Savio").
 - Obediencia: Gran Logia de la Argentina de Libres y Aceptados Masones.
 - Sede: Templo Masónico de San Nicolás, De la Nación 80, San Nicolás de los Arroyos, provincia de Buenos Aires, Argentina. En pie desde 1870; el más antiguo del país. Se puede visitar coordinando una fecha.
-- Contacto: info@lasavio.com.ar · +54 9 336 423 0684.
+- Contacto: info@lasavio.com.ar · +54 9 336 459 7001.
 - Nombre elegido en homenaje al general Manuel Savio (1892-1948), ingeniero militar padre de la siderurgia argentina y de SOMISA en San Nicolás. Savio no fue masón; la logia lo eligió por su condición de constructor.
 
 ## Respuestas directas sobre la masonería
@@ -27,3 +27,5 @@
 ## Páginas
 
 - [Inicio](https://lasavio.com.ar/): landing con preguntas frecuentes, legado local y el Guardián del Templo, asistente de IA de la logia para responder cualquier pregunta de forma anónima.
+- [Pedí una charla](https://lasavio.com.ar/entrevista/): formulario de contacto para coordinar una primera charla informal con la logia, previa al proceso formal de admisión.
+- [Política de privacidad](https://lasavio.com.ar/privacidad/): qué datos trata el sitio, para qué se usan y cómo ejercer los derechos de acceso, rectificación y supresión conforme a la Ley 25.326.

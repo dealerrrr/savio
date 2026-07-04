@@ -1,0 +1,13 @@
+/* TEAM */
+Responsable: Logia Ingeniero Manuel Savio Nº 567
+Obediencia: Gran Logia de la Argentina de Libres y Aceptados Masones
+Contacto: info@lasavio.com.ar
+Ubicación: San Nicolás de los Arroyos, Buenos Aires, Argentina
+
+/* SITE */
+Última actualización: 2026-07-03
+Stack: HTML5, CSS3, JavaScript (sitio estático)
+Hosting: Vercel
+DNS: Cloudflare
+Estándares: HTML5, CSS3
+Componentes: IA generativa (Google Gemini) para el Guardián del Templo
