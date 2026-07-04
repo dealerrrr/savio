@@ -4,6 +4,9 @@
 .vercel
 node_modules
 
+# Backups de Obsidian, se conservan localmente pero no se versionan.
+*.edtz
+
 # Material interno, no se publica en el repo.
 /documentos/
 documentos
