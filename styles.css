@@ -235,15 +235,16 @@ header.barra{
 }
 /* Foto en capa propia: el friso del templo sube ~1.1° hacia la derecha (medido
    sobre el borde superior del entablamento). Se rota +1.1° (horario) para
-   nivelarlo con la línea de base del overline. inset negativo + scale evitan
-   que la rotación deje huecos en las esquinas. El zoom se mantiene mínimo
-   (scale 1.045) para conservar el encuadre original: vértice del frontón y
-   base de la estatua visibles. */
+   nivelarlo con la línea de base del overline. La imagen ya viene recortada
+   con el vértice del frontón justo en el borde superior (background-position:
+   center top), así que el scale debe ser el mínimo matemático que tapa los
+   huecos de esquina que deja la rotación (~1.008 para este aspect ratio),
+   no más: un scale mayor recorta el propio vértice desde el centro. */
 .hero::before{
   content:"";position:absolute;inset:0;z-index:-2;
   background-image:url('assets/templo_hero.webp');
-  background-size:cover;background-position:center 55%;
-  transform:rotate(1.1deg) scale(1.045);
+  background-size:cover;background-position:center top;
+  transform:rotate(1.1deg) scale(1.012);
   transform-origin:center;
 }
 /* Velos oscuros (variante B): densos arriba para el texto, livianos abajo para que
