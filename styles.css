@@ -230,18 +230,36 @@ header.barra{
   min-height:88vh;display:flex;align-items:center;
   border-bottom:1px solid var(--c-border);
   background-color:var(--c-bg);
-  /* Foto del templo (hora azul) bajo velos oscuros (variante B): denso arriba para el texto,
-     liviano abajo para que respiren el resplandor de la puerta y la "G". Leve sesgo a la
-     izquierda. El orden importa: los degradados van primero (encima); la foto, última (debajo). */
+  clip-path:inset(0);
+}
+/* Foto en capa propia: el friso del templo sube ~1.1° hacia la derecha (medido
+   sobre el borde superior del entablamento). Se rota +1.1° (horario) para
+   nivelarlo con la línea de base del overline. inset negativo + scale evitan
+   que la rotación deje huecos en las esquinas. El zoom se mantiene mínimo
+   (scale 1.045) para conservar el encuadre original: vértice del frontón y
+   base de la estatua visibles. */
+.hero::before{
+  content:"";position:absolute;inset:0;z-index:-2;
+  background-image:url('assets/templo_hero.webp');
+  background-size:cover;background-position:center;
+  transform:rotate(1.1deg) scale(1.045);
+  transform-origin:center;
+}
+/* Velos oscuros (variante B): densos arriba para el texto, livianos abajo para que
+   respiren el resplandor de la puerta y la "G". Leve sesgo a la izquierda. Van sin
+   rotar, encima de la foto. */
+.hero::after{
+  content:"";position:absolute;inset:0;z-index:-1;
   background-image:
     radial-gradient(900px 650px at 32% 46%, rgba(12,14,19,.5), transparent 68%),
     linear-gradient(180deg, rgba(12,14,19,.46) 0%, rgba(12,14,19,.18) 100%),
     linear-gradient(90deg,  rgba(12,14,19,.11) 0%, rgba(12,14,19,0) 100%),
-    radial-gradient(1200px 600px at 50% 55%, rgba(201,168,104,.18), transparent 65%),
-    url('assets/templo_hero.webp');
-  background-size:cover;background-position:center;
+    radial-gradient(1200px 600px at 50% 55%, rgba(201,168,104,.18), transparent 65%);
 }
-.hero .contenedor{padding-top:var(--sp-8);padding-bottom:var(--sp-8)}
+/* Padding asimétrico (sp-9 arriba / sp-8 abajo): con el flex centrado, baja el
+   bloque de texto ~20px hacia el velo oscuro del patio. El overline queda
+   despegado del friso y el CTA conserva su aire de sp-7 respecto del sub. */
+.hero .contenedor{padding-top:var(--sp-9);padding-bottom:var(--sp-8)}
 .hero h1{font-size:var(--t-display);margin:var(--sp-5) 0 var(--sp-5);max-width:640px;text-shadow:0 2px 16px rgba(0,0,0,.55)}
 .hero p.sub{font-size:19px;color:var(--c-muted);max-width:580px;margin-bottom:var(--sp-7);text-shadow:0 1px 10px rgba(0,0,0,.6)}
 .hero .overline{text-shadow:0 1px 10px rgba(0,0,0,.6)}
