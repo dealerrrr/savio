@@ -231,6 +231,7 @@ header.barra{
   border-bottom:1px solid var(--c-border);
   background-color:var(--c-bg);
   clip-path:inset(0);
+  overflow:hidden;
 }
 /* Foto en capa propia: el friso del templo sube ~1.1° hacia la derecha (medido
    sobre el borde superior del entablamento). Se rota +1.1° (horario) para
