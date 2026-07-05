@@ -242,7 +242,7 @@ header.barra{
 .hero::before{
   content:"";position:absolute;inset:0;z-index:-2;
   background-image:url('assets/templo_hero.webp');
-  background-size:cover;background-position:center 42%;
+  background-size:cover;background-position:center 55%;
   transform:rotate(1.1deg) scale(1.045);
   transform-origin:center;
 }
