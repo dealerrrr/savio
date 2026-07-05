@@ -242,7 +242,7 @@ header.barra{
 .hero::before{
   content:"";position:absolute;inset:0;z-index:-2;
   background-image:url('assets/templo_hero.webp');
-  background-size:cover;background-position:center;
+  background-size:cover;background-position:center 42%;
   transform:rotate(1.1deg) scale(1.045);
   transform-origin:center;
 }
@@ -257,10 +257,9 @@ header.barra{
     linear-gradient(90deg,  rgba(12,14,19,.11) 0%, rgba(12,14,19,0) 100%),
     radial-gradient(1200px 600px at 50% 55%, rgba(201,168,104,.18), transparent 65%);
 }
-/* Padding asimétrico (sp-9 arriba / sp-8 abajo): con el flex centrado, baja el
-   bloque de texto ~20px hacia el velo oscuro del patio. El overline queda
-   despegado del friso y el CTA conserva su aire de sp-7 respecto del sub. */
-.hero .contenedor{padding-top:var(--sp-9);padding-bottom:var(--sp-8)}
+/* Padding simétrico: con el flex centrado, el bloque de texto queda
+   perfectamente centrado verticalmente en el hero. */
+.hero .contenedor{padding-top:var(--sp-8);padding-bottom:var(--sp-8)}
 .hero h1{font-size:var(--t-display);margin:var(--sp-5) 0 var(--sp-5);max-width:640px;text-shadow:0 2px 16px rgba(0,0,0,.55)}
 .hero p.sub{font-size:19px;color:var(--c-muted);max-width:580px;margin-bottom:var(--sp-7);text-shadow:0 1px 10px rgba(0,0,0,.6)}
 .hero .overline{text-shadow:0 1px 10px rgba(0,0,0,.6)}
