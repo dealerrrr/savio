@@ -137,8 +137,26 @@
 
     const agregarBurbuja = (texto, clase) => {
       const burbuja = document.createElement('div');
-      burbuja.className = clase ? `burbuja ${clase}` : 'burbuja';
+      burbuja.className = clase ? `burbuja burbuja--nueva ${clase}` : 'burbuja burbuja--nueva';
       burbuja.textContent = texto;
+      chatCuerpo.appendChild(burbuja);
+      chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+      return burbuja;
+    };
+
+    // Indicador de escritura: tres puntos dorados con onda secuencial (texto para lectores de pantalla).
+    const agregarIndicador = () => {
+      const burbuja = document.createElement('div');
+      burbuja.className = 'burbuja burbuja--nueva burbuja--cargando';
+      for (let i = 0; i < 3; i += 1) {
+        const punto = document.createElement('span');
+        punto.className = 'punto';
+        burbuja.appendChild(punto);
+      }
+      const anuncio = document.createElement('span');
+      anuncio.className = 'visually-hidden';
+      anuncio.textContent = 'El Guardián está escribiendo';
+      burbuja.appendChild(anuncio);
       chatCuerpo.appendChild(burbuja);
       chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
       return burbuja;
@@ -166,7 +184,7 @@
       agregarBurbuja(mensaje, 'burbuja--visitante');
       chatInput.value = '';
       alternarEnvio(true);
-      const indicador = agregarBurbuja('Escribiendo…', 'burbuja--cargando');
+      const indicador = agregarIndicador();
 
       const turnstileToken = window.turnstile ? window.turnstile.getResponse() : undefined;
 
@@ -248,7 +266,7 @@
         }
 
         track('form_envio');
-        mostrarMensaje('Listo. Te vamos a contactar a la brevedad para coordinar la charla.', 'mensaje-estado--ok');
+        mostrarMensaje('Listo, golpeaste. Alguien de la logia te va a escribir a la brevedad.', 'mensaje-estado--ok');
         formEntrevista.reset();
       } catch (err) {
         track('form_error');
@@ -259,6 +277,24 @@
         if (boton) boton.disabled = false;
       }
     });
+  }
+
+  // 8. Revelado por scroll: pausado y una sola vez, anulado con reduced-motion.
+  if (!reducedMotion && 'IntersectionObserver' in window) {
+    const revelables = document.querySelectorAll(
+      '#verdad .overline, #verdad .titulo-seccion, #verdad .bajada, #verdad details, #verdad .puente,' +
+      '#legado .overline, #legado .titulo-seccion, #legado .bajada, #legado figure, #legado p, #legado .legado-sub, #legado blockquote,' +
+      '#guardian .overline, #guardian .titulo-seccion, #guardian .bajada, #guardian .chat, #guardian .nota-fase'
+    );
+    revelables.forEach((el) => el.classList.add('revelar'));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('revelado');
+        obs.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    revelables.forEach((el) => obs.observe(el));
   }
 
   // Enlaces externos: siempre en pestaña nueva.
