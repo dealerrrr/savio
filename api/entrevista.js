@@ -1,15 +1,15 @@
 // Endpoint serverless de Vercel para el formulario de "pedir una charla" (/entrevista/).
 //
 // Recibe { nombre, email, whatsapp, mayorEdad } desde main.js y envía un
-// email a la logia con los datos, usando la API de Resend. No guarda nada
+// email a la logia con los datos, usando la API de Brevo. No guarda nada
 // en ningún servidor propio ni en una base de datos: el mail es el único
-// destino de los datos. La RESEND_API_KEY vive solo acá (variable de
+// destino de los datos. La BREVO_API_KEY vive solo acá (variable de
 // entorno del servidor) y nunca se expone al navegador.
 //
 // Requiere, en Vercel:
-//   RESEND_API_KEY   → clave de la cuenta de Resend.
-//   RESEND_FROM      → remitente verificado en Resend (ej. "Logia Savio <formulario@lasavio.com.ar>").
-//                       El dominio tiene que estar verificado en Resend antes de que esto funcione.
+//   BREVO_API_KEY    → clave API transaccional de la cuenta de Brevo.
+//   BREVO_FROM       → remitente verificado en Brevo (ej. "Logia Savio <formulario@lasavio.com.ar>").
+//                       El dominio tiene que estar autenticado en Brevo antes de que esto funcione.
 //   CONTACTO_EMAIL   → casilla de la logia que recibe el pedido (default: info@lasavio.com.ar).
 //
 // Contrato:
@@ -20,8 +20,18 @@
 
 const { verificarTurnstile } = require('../lib/turnstile');
 
-const RESEND_URL = 'https://api.resend.com/emails';
+const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
 const CONTACTO_EMAIL_DEFAULT = 'info@lasavio.com.ar';
+
+// Acepta tanto "Nombre <email@dominio.com>" como "email@dominio.com" a secas,
+// para no atarse a un formato particular de la variable de entorno.
+const parsearRemitente = (valor) => {
+  const match = /^(.*)<(.+)>$/.exec(valor || '');
+  if (match) {
+    return { name: match[1].trim() || undefined, email: match[2].trim() };
+  }
+  return { email: (valor || '').trim() };
+};
 
 const MAX_NOMBRE = 100;
 const MAX_WHATSAPP = 40;
@@ -36,10 +46,10 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM;
+  const apiKey = process.env.BREVO_API_KEY;
+  const from = process.env.BREVO_FROM;
   if (!apiKey || !from) {
-    console.error('RESEND_API_KEY o RESEND_FROM no están configuradas.');
+    console.error('BREVO_API_KEY o BREVO_FROM no están configuradas.');
     return res.status(500).json({ error: 'El formulario no está disponible en este momento.' });
   }
   const contacto = process.env.CONTACTO_EMAIL || CONTACTO_EMAIL_DEFAULT;
@@ -89,31 +99,32 @@ module.exports = async (req, res) => {
     </ul>
   `.trim();
 
-  let resendResponse;
+  let brevoResponse;
   try {
-    resendResponse = await fetch(RESEND_URL, {
+    brevoResponse = await fetch(BREVO_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/json',
+        'api-key': apiKey,
       },
       body: JSON.stringify({
-        from,
-        to: [contacto],
-        reply_to: email,
+        sender: parsearRemitente(from),
+        to: [{ email: contacto }],
+        replyTo: { email },
         subject: asunto,
-        text: texto,
-        html,
+        textContent: texto,
+        htmlContent: html,
       }),
     });
   } catch (err) {
-    console.error('Error de red llamando a Resend:', err.message);
+    console.error('Error de red llamando a Brevo:', err.message);
     return res.status(502).json({ error: 'No se pudo enviar el pedido. Probá de nuevo en un momento.' });
   }
 
-  if (!resendResponse.ok) {
-    const errorBody = await resendResponse.text().catch(() => '');
-    console.error('Resend respondió con error:', resendResponse.status, errorBody);
+  if (!brevoResponse.ok) {
+    const errorBody = await brevoResponse.text().catch(() => '');
+    console.error('Brevo respondió con error:', brevoResponse.status, errorBody);
     return res.status(502).json({ error: 'No se pudo enviar el pedido. Probá de nuevo en un momento.' });
   }
 
