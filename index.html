@@ -316,7 +316,7 @@
         <input type="text" placeholder="Escribí tu pregunta" aria-label="Escribí tu pregunta" disabled>
         <button type="submit" class="boton" disabled>Enviar</button>
       </form>
-      <div class="cf-turnstile turnstile-chat" data-sitekey="0x4AAAAAADvkhhYYnWYpORsC" data-theme="dark" data-size="flexible"></div>
+      <div class="cf-turnstile turnstile-chat" data-sitekey="0x4AAAAAADvkhhYYnWYpORsC" data-theme="dark" data-size="flexible" data-appearance="interaction-only"></div>
     </div>
     <p class="nota-fase">El Guardián es una IA de esta logia. No te pedimos ningún dato: la charla es anónima, pero el texto queda guardado para mejorarlo. El resto, en nuestra <a href="/privacidad/">política de privacidad</a>.</p>
   </div>
@@ -341,5 +341,9 @@
 <a href="#guardian" class="fab-guardian" aria-label="Preguntale al Guardián">Preguntale al Guardián</a>
 
 <script src="main.js" defer></script>
+<script>
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
