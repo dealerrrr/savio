@@ -102,7 +102,7 @@ img{max-width:100%;display:block}
 .contenedor{width:100%;max-width:var(--ancho-texto);margin:0 auto;padding:0 var(--sp-5)}
 
 section{padding:var(--sp-8) 0;position:relative;scroll-margin-top:60px}
-section:not(.hero):not(.guardian):not(.privacidad):not(.entrevista)::after{
+section:not(.hero):not(.guardian):not(.privacidad):not(.admision)::after{
   content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%) scaleX(1);
   transform-origin:center;
   width:min(360px,70%);height:9px;
@@ -432,9 +432,9 @@ blockquote.cita-savio{
 .privacidad a{color:var(--c-accent-2);text-decoration:underline}
 .privacidad .vigencia{color:var(--c-faint);font-size:var(--t-small);font-style:italic;margin-top:var(--sp-6)}
 
-/* --- Página de entrevista (formulario) --- */
-.entrevista .bajada{max-width:none}
-.form-entrevista{max-width:420px;margin-top:var(--sp-6)}
+/* --- Página de admisión (formulario) --- */
+.admision .bajada{max-width:none}
+.form-admision{max-width:420px;margin-top:var(--sp-6)}
 .campo{margin-bottom:var(--sp-4)}
 .campo label{display:block;font-size:var(--t-small);color:var(--c-muted);margin-bottom:var(--sp-2)}
 .campo input{
@@ -448,7 +448,7 @@ blockquote.cita-savio{
 }
 .campo-check input{width:16px;height:16px;flex:0 0 auto;accent-color:var(--c-accent)}
 .cf-turnstile{margin-bottom:var(--sp-5)}
-.form-entrevista .boton{width:100%;text-align:center}
+.form-admision .boton{width:100%;text-align:center}
 .consentimiento{margin-top:var(--sp-4);font-size:var(--t-small);color:var(--c-faint)}
 .consentimiento a{color:var(--c-accent-2);text-decoration:underline}
 .mensaje-estado{margin-top:var(--sp-4);font-size:15px}

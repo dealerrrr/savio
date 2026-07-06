@@ -1,4 +1,4 @@
-// Endpoint serverless de Vercel para el formulario de "pedir una charla" (/entrevista/).
+// Endpoint serverless de Vercel para el formulario de "pedir una charla" (/admision/).
 //
 // Recibe { nombre, email, whatsapp, mayorEdad } desde main.js y envía un
 // email a la logia con los datos, usando la API de Brevo. No guarda nada
@@ -13,7 +13,7 @@
 //   CONTACTO_EMAIL   → casilla de la logia que recibe el pedido (default: info@lasavio.com.ar).
 //
 // Contrato:
-//   POST /api/entrevista
+//   POST /api/admision
 //   body:  { nombre: string, email: string, whatsapp: string, mayorEdad: boolean }
 //   200:   { ok: true }
 //   4xx/5xx: { error: string }
@@ -80,9 +80,9 @@ module.exports = async (req, res) => {
     return res.status(403).json({ error: verificacion.error });
   }
 
-  const asunto = `Pedido de charla — ${nombre}`;
+  const asunto = `Solicitud de admisión — ${nombre}`;
   const texto = [
-    'Nuevo pedido de charla desde lasavio.com.ar/entrevista/',
+    'Nuevo pedido de charla desde lasavio.com.ar/admision/',
     '',
     `Nombre: ${nombre}`,
     `Email: ${email}`,
@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
     'Declaró ser mayor de edad: sí',
   ].join('\n');
   const html = `
-    <p>Nuevo pedido de charla desde <strong>lasavio.com.ar/entrevista/</strong></p>
+    <p>Nuevo pedido de charla desde <strong>lasavio.com.ar/admision/</strong></p>
     <ul>
       <li><strong>Nombre:</strong> ${escaparHtml(nombre)}</li>
       <li><strong>Email:</strong> ${escaparHtml(email)}</li>

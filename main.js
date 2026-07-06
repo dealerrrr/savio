@@ -219,14 +219,14 @@
     });
   }
 
-  // 7. Formulario de /entrevista/: envía por fetch a /api/entrevista.
-  const formEntrevista = document.getElementById('form-entrevista');
-  if (formEntrevista) {
+  // 7. Formulario de /admision/: envía por fetch a /api/admision.
+  const formAdmision = document.getElementById('form-admision');
+  if (formAdmision) {
     // Empezó a completar: la brecha inicio→envío mide si el formulario espanta.
-    formEntrevista.addEventListener('focusin', () => track('form_inicio'), { once: true });
+    formAdmision.addEventListener('focusin', () => track('form_inicio'), { once: true });
 
-    const boton = formEntrevista.querySelector('button[type="submit"]');
-    const mensaje = formEntrevista.querySelector('.mensaje-estado');
+    const boton = formAdmision.querySelector('button[type="submit"]');
+    const mensaje = formAdmision.querySelector('.mensaje-estado');
     let enviandoForm = false;
 
     const mostrarMensaje = (texto, clase) => {
@@ -236,14 +236,14 @@
       mensaje.hidden = false;
     };
 
-    formEntrevista.addEventListener('submit', async (e) => {
+    formAdmision.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (enviandoForm) return;
 
-      const nombre = formEntrevista.nombre.value.trim();
-      const email = formEntrevista.email.value.trim();
-      const whatsapp = formEntrevista.whatsapp.value.trim();
-      const mayorEdad = formEntrevista.mayorEdad.checked;
+      const nombre = formAdmision.nombre.value.trim();
+      const email = formAdmision.email.value.trim();
+      const whatsapp = formAdmision.whatsapp.value.trim();
+      const mayorEdad = formAdmision.mayorEdad.checked;
 
       const turnstileToken = window.turnstile ? window.turnstile.getResponse() : undefined;
 
@@ -252,7 +252,7 @@
       mostrarMensaje('Enviando…');
 
       try {
-        const respuesta = await fetch('/api/entrevista', {
+        const respuesta = await fetch('/api/admision', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nombre, email, whatsapp, mayorEdad, turnstileToken }),
@@ -267,7 +267,7 @@
 
         track('form_envio');
         mostrarMensaje('Listo, golpeaste. Alguien de la logia te va a escribir a la brevedad.', 'mensaje-estado--ok');
-        formEntrevista.reset();
+        formAdmision.reset();
       } catch (err) {
         track('form_error');
         mostrarMensaje('No se pudo conectar. Revisá tu conexión y probá de nuevo.', 'mensaje-estado--error');
