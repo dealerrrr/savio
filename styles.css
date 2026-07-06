@@ -361,13 +361,17 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
 .chat-cabe b{font-family:var(--f-serif);font-size:18px;font-weight:600}
 .chat-cabe small{display:flex;align-items:center;gap:6px;color:var(--c-muted);font-size:12px;font-family:var(--f-sans)}
 .chat-cabe small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c-accent);flex:0 0 auto}
-.chat-cuerpo{padding:var(--sp-6) var(--sp-5);max-height:min(420px,55vh);overflow-y:auto}
+.chat-cuerpo{padding:var(--sp-6) var(--sp-5);max-height:min(460px,60vh);overflow-y:auto}
 .burbuja{
   background:var(--c-surface-2);border:1px solid var(--c-border);
   border-radius:4px 14px 14px 14px;padding:var(--sp-4) var(--sp-4);
   font-size:17px;color:var(--c-text);max-width:90%;white-space:pre-wrap;
 }
 .burbuja--nueva{animation:entrada .4s var(--ease-reloj)}
+.burbuja--intro{white-space:normal}
+.burbuja--intro p{margin:0}
+.burbuja--intro p+p{margin-top:var(--sp-2)}
+.burbuja--pendiente{display:none}
 .burbuja + .burbuja{margin-top:var(--sp-3)}
 .burbuja--visitante{
   margin-left:auto;background:var(--c-accent);border-color:var(--c-accent);

@@ -171,6 +171,40 @@
     if (chatInput) chatInput.disabled = false;
     if (chatBoton) chatBoton.disabled = false;
 
+    // Burbujas de apertura pendientes (detalle + cierre): se revelan en
+    // cadena con indicador de escritura apenas carga la página, sin depender
+    // de scroll.
+    const pendientes = ['guardian-detalle', 'guardian-cierre']
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+    if (pendientes.length) {
+      const revelarUna = (burbuja) => new Promise((resolve) => {
+        if (reducedMotion) {
+          burbuja.classList.remove('burbuja--pendiente');
+          chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+          resolve();
+          return;
+        }
+        const indicador = agregarIndicador();
+        setTimeout(() => {
+          indicador.remove();
+          burbuja.classList.add('burbuja--nueva');
+          burbuja.classList.remove('burbuja--pendiente');
+          chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+          resolve();
+        }, 900);
+      });
+
+      const revelarCadena = async () => {
+        for (const burbuja of pendientes) {
+          await revelarUna(burbuja);
+          if (!reducedMotion) await new Promise((r) => setTimeout(r, 900));
+        }
+      };
+
+      setTimeout(revelarCadena, 500);
+    }
+
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (enviando || !chatInput) return;
