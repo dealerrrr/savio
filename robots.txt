@@ -1,29 +1,49 @@
 # lasavio.com.ar
 # Rastreo abierto: el contenido de este sitio existe para ser encontrado y citado.
+# Política: búsqueda y citas AI sí, entrenamiento de modelos no.
 
 User-agent: *
 Allow: /
 
-# Buscadores de IA, bienvenidos (GEO)
-User-agent: GPTBot
-Allow: /
-
+# Búsqueda y citas AI: bienvenidos (GEO)
 User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: ChatGPT-User
 Allow: /
 
-User-agent: ClaudeBot
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
 Allow: /
 
 User-agent: Claude-Web
 Allow: /
 
-User-agent: PerplexityBot
-Allow: /
+# Entrenamiento de modelos: no
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
 
 User-agent: Google-Extended
-Allow: /
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
 
 Sitemap: https://lasavio.com.ar/sitemap.xml

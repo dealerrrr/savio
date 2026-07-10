@@ -34,6 +34,8 @@
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="assets/isotipo.svg">
 
+<link rel="preconnect" href="https://cloud.umami.is">
+<link rel="dns-prefetch" href="https://challenges.cloudflare.com">
 <link rel="preload" href="assets/fonts/cormorant-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/templo_hero.webp" as="image" fetchpriority="high">
@@ -41,7 +43,8 @@
 
 <!-- Umami Analytics: sin cookies ni datos personales -->
 <script defer src="https://cloud.umami.is/script.js" data-website-id="ec7ce83b-34ca-4c03-8b87-ac296009bf0c"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<!-- Turnstile se carga diferido desde main.js cuando el visitante se acerca al chat:
+     evita ~490 KB de terceros durante la carga inicial (LCP/Speed Index). -->
 
 <script type="application/ld+json">
 {

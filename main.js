@@ -118,7 +118,34 @@
     });
   });
 
-  // 6. Chat del Guardián: habilita el formulario y conecta con /api/chat.
+  // 6. Turnstile diferido: el widget solo se usa en el chat (al final de la
+  // página), así que el script (~490 KB con su challenge) no se carga en el
+  // arranque sino cuando el visitante se acerca al chat o enfoca el input.
+  // La página /admision/ mantiene su propia etiqueta <script> porque ahí el
+  // formulario es el contenido principal.
+  let turnstileCargado = false;
+  const cargarTurnstile = () => {
+    if (turnstileCargado) return;
+    turnstileCargado = true;
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    document.head.appendChild(s);
+  };
+  if (guardian && 'IntersectionObserver' in window) {
+    const obsTurnstile = new IntersectionObserver((entradas) => {
+      if (entradas.some((e) => e.isIntersecting)) {
+        obsTurnstile.disconnect();
+        cargarTurnstile();
+      }
+    }, { rootMargin: '1500px 0px' });
+    obsTurnstile.observe(guardian);
+  } else {
+    // Sin IntersectionObserver: comportamiento previo, cargar de entrada.
+    cargarTurnstile();
+  }
+
+  // 7. Chat del Guardián: habilita el formulario y conecta con /api/chat.
   const chatForm = document.querySelector('.chat-pie');
   const chatCuerpo = document.querySelector('.chat-cuerpo');
   if (chatForm && chatCuerpo) {
@@ -170,6 +197,10 @@
 
     if (chatInput) chatInput.disabled = false;
     if (chatBoton) chatBoton.disabled = false;
+
+    // Refuerzo del diferido: si el visitante llega al input por cualquier
+    // camino (teclado, enlace directo), asegura que Turnstile esté cargado.
+    chatForm.addEventListener('focusin', cargarTurnstile, { once: true });
 
     // Burbujas de apertura pendientes (detalle + cierre): se revelan en
     // cadena con indicador de escritura cuando el chat entra en el viewport
@@ -273,7 +304,7 @@
     });
   }
 
-  // 7. Formulario de /admision/: envía por fetch a /api/admision.
+  // 8. Formulario de /admision/: envía por fetch a /api/admision.
   const formAdmision = document.getElementById('form-admision');
   if (formAdmision) {
     // Empezó a completar: la brecha inicio→envío mide si el formulario espanta.
@@ -333,7 +364,7 @@
     });
   }
 
-  // 8. Revelado por scroll: pausado y una sola vez, anulado con reduced-motion.
+  // 9. Revelado por scroll: pausado y una sola vez, anulado con reduced-motion.
   if (!reducedMotion && 'IntersectionObserver' in window) {
     const revelables = document.querySelectorAll(
       '#verdad .overline, #verdad .titulo-seccion, #verdad .bajada, #verdad details, #verdad .puente,' +
