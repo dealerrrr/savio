@@ -9,7 +9,10 @@ node_modules
 
 # Material interno, no se publica en el repo.
 /documentos/
+/assets/originales/
 documentos
 CLAUDE.md
+HERRAMIENTAS.md
 Karpathy.md
+plan_rediseño.md
 REVISION-GUARDIAN.md
