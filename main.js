@@ -172,8 +172,8 @@
     if (chatBoton) chatBoton.disabled = false;
 
     // Burbujas de apertura pendientes (detalle + cierre): se revelan en
-    // cadena con indicador de escritura apenas carga la página, sin depender
-    // de scroll.
+    // cadena con indicador de escritura cuando el chat entra en el viewport
+    // (~40% visible), para que el visitante vea la transición al llegar.
     const pendientes = ['guardian-detalle', 'guardian-cierre']
       .map((id) => document.getElementById(id))
       .filter(Boolean);
@@ -202,7 +202,27 @@
         }
       };
 
-      setTimeout(revelarCadena, 500);
+      let cadenaIniciada = false;
+      const iniciarCadena = () => {
+        if (cadenaIniciada) return;
+        cadenaIniciada = true;
+        setTimeout(revelarCadena, 500);
+      };
+
+      const chatWidget = chatCuerpo.closest('.chat') || chatCuerpo;
+      if ('IntersectionObserver' in window) {
+        const observador = new IntersectionObserver((entradas) => {
+          if (entradas.some((e) => e.isIntersecting)) {
+            observador.disconnect();
+            iniciarCadena();
+          }
+        }, { threshold: 0.4 });
+        observador.observe(chatWidget);
+      } else {
+        // Fallback para navegadores sin IntersectionObserver: comportamiento
+        // previo, revelar al cargar.
+        iniciarCadena();
+      }
     }
 
     chatForm.addEventListener('submit', async (e) => {
