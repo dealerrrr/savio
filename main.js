@@ -46,7 +46,8 @@
       scrollHint.classList.toggle('oculto', window.scrollY > 40);
     };
     window.addEventListener('scroll', ocultarEnScroll, { passive: true });
-    ocultarEnScroll();
+    // La lectura inicial de scrollY va en un frame propio para no forzar un reflow durante la carga.
+    requestAnimationFrame(ocultarEnScroll);
   }
 
   // 4. Menú móvil (hamburguesa) + desplegable «Legado» (desktop y móvil).
