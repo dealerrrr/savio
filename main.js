@@ -352,7 +352,7 @@
         }
 
         track('form_envio');
-        mostrarMensaje('Listo, golpeaste. Alguien de la logia te va a escribir a la brevedad.', 'mensaje-estado--ok');
+        mostrarMensaje('Listo, ahora solo queda esperar. Alguien de la logia te va a escribir a la brevedad posible.', 'mensaje-estado--ok');
         formAdmision.reset();
       } catch (err) {
         track('form_error');

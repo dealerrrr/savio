@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
 
   const asunto = `Solicitud de admisión — ${nombre}`;
   const texto = [
-    'Nuevo pedido de charla desde lasavio.com.ar/admision/',
+    'Nuevo pedido de solicitud de admisión desde lasavio.com.ar/admision/',
     '',
     `Nombre: ${nombre}`,
     `Email: ${email}`,
@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
     'Declaró ser mayor de edad: sí',
   ].join('\n');
   const html = `
-    <p>Nuevo pedido de charla desde <strong>lasavio.com.ar/admision/</strong></p>
+    <p>Nuevo pedido de solicitud de admisión desde <strong>lasavio.com.ar/admision/</strong></p>
     <ul>
       <li><strong>Nombre:</strong> ${escaparHtml(nombre)}</li>
       <li><strong>Email:</strong> ${escaparHtml(email)}</li>

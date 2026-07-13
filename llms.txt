@@ -27,5 +27,5 @@
 ## Páginas
 
 - [Inicio](https://lasavio.com.ar/): landing con preguntas frecuentes, legado local y el Guardián del Templo, asistente de IA de la logia para responder cualquier pregunta de forma anónima.
-- [Pedí una charla](https://lasavio.com.ar/admision/): formulario de contacto para coordinar una primera charla informal con la logia, previa al proceso formal de admisión.
+- [Solicitá tu admisión](https://lasavio.com.ar/admision/): formulario de contacto para iniciar el proceso de admisión a la Orden.
 - [Política de privacidad](https://lasavio.com.ar/privacidad/): qué datos trata el sitio, para qué se usan y cómo ejercer los derechos de acceso, rectificación y supresión conforme a la Ley 25.326.

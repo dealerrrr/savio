@@ -4,15 +4,11 @@
 .vercel
 node_modules
 
-# Backups de Obsidian, se conservan localmente pero no se versionan.
+# Backups de Obsidian y archivos markdown, se conservan localmente pero no se versionan.
 *.edtz
+*.md
 
 # Material interno, no se publica en el repo.
 /documentos/
 /assets/originales/
 documentos
-CLAUDE.md
-HERRAMIENTAS.md
-Karpathy.md
-plan_rediseño.md
-REVISION-GUARDIAN.md
