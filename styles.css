@@ -394,6 +394,12 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
   color:var(--c-text);font-family:var(--f-sans);font-size:15px;padding:13px 14px;
 }
 .chat-pie input::placeholder{color:var(--c-muted)}
+/* Safari iOS hace zoom automático (y deja la página desbordada en horizontal)
+   al enfocar inputs con fuente <16px. En dispositivos táctiles se sube a 16px
+   para evitarlo; con mouse queda el 15px original. */
+@media (pointer:coarse){
+  .chat-pie input{font-size:16px}
+}
 .chat-pie .boton{
   background:var(--c-accent);border:0;border-radius:var(--r-sm);color:var(--c-bg);
   font-family:var(--f-sans);font-weight:500;font-size:15px;padding:0 20px;cursor:pointer;
