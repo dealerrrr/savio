@@ -50,7 +50,7 @@
     requestAnimationFrame(ocultarEnScroll);
   }
 
-  // 4. Menú móvil (hamburguesa) + desplegable «Legado» (desktop y móvil).
+  // 4. Menú móvil (hamburguesa).
   const hamburguesa = document.querySelector('.hamburguesa');
   const panelMovil = document.getElementById('panel-movil');
   if (hamburguesa && panelMovil) {
@@ -97,11 +97,19 @@
   }
 
   // Qué mito atrae más lecturas.
-  document.querySelectorAll('details[name="faq"]').forEach((faq) => {
+  const faqs = document.querySelectorAll('details[name="faq"]');
+  faqs.forEach((faq) => {
     faq.addEventListener('toggle', () => {
       if (!faq.open) return;
       const resumen = faq.querySelector('summary');
       track('faq_abierta', { pregunta: resumen ? resumen.textContent.trim() : '' });
+      // Fallback de acordeón exclusivo para navegadores sin soporte de `name`
+      // en <details> (Safari < iOS 17.2, Firefox < 130): cerrar los demás al
+      // abrir uno. En navegadores modernos es inocuo: el cierre nativo ya
+      // ocurrió y no queda nada abierto que cerrar.
+      faqs.forEach((otro) => {
+        if (otro !== faq && otro.open) otro.open = false;
+      });
     });
   });
 

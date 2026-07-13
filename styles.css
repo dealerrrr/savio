@@ -59,19 +59,14 @@
   --trans: .2s ease;
 
   /* --- Derivados de oro (alpha sobre --c-accent) --- */
-  --oro-08: rgba(176,141,79,.08);
   --oro-15: rgba(176,141,79,.15);
   --oro-25: rgba(176,141,79,.25);
-  --oro-40: rgba(176,141,79,.40);
 
   /* --- Motion "alta relojería": lento, preciso, sin rebotes --- */
   --ease-reloj: cubic-bezier(.22,.61,.36,1);
   --dur-micro: .25s;   /* hovers, foco */
   --dur-media: .5s;    /* despliegues, sheen */
   --dur-lenta: .9s;    /* reveals de sección */
-
-  /* --- Filete dorado (gradiente que se desvanece a los lados) --- */
-  --filete-oro: linear-gradient(90deg, transparent, var(--oro-40) 18%, var(--c-accent) 50%, var(--oro-40) 82%, transparent);
 }
 
 /* ============================ 2. BASE ================================== */
@@ -163,17 +158,6 @@ header.barra{
   margin-left:auto;line-height:1;padding:10px 20px;font-size:14px;
 }
 
-/* --- Desplegable Legado --- */
-.nav-desplegable{position:relative}
-.nav-desplegable__panel{
-  position:absolute;top:calc(100% + var(--sp-3));left:0;min-width:200px;
-  background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);
-  list-style:none;padding:var(--sp-2) 0;box-shadow:var(--sombra-lg);
-}
-.nav-desplegable__panel[hidden]{display:none}
-.nav-desplegable__panel li a{display:block;padding:var(--sp-2) var(--sp-4);white-space:nowrap}
-.nav-desplegable__panel li a:hover{background:var(--c-surface-2)}
-
 /* --- Hamburguesa (móvil) --- */
 .hamburguesa{
   display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;
@@ -192,7 +176,6 @@ header.barra{
   }
   .panel-movil[hidden]{display:none}
   .panel-movil a{font-family:var(--f-sans);color:var(--c-text);text-decoration:none}
-  .nav-desplegable--movil .nav-desplegable__panel{position:static;box-shadow:none;margin-top:var(--sp-2)}
 }
 .iso{width:30px;height:30px;flex:0 0 auto}
 
@@ -246,6 +229,12 @@ header.barra{
   background-size:cover;background-position:center top;
   transform:rotate(1.1deg) scale(1.012);
   transform-origin:center;
+}
+/* Mobile: recorte central 480x510 de la misma foto (franja visible con cover en
+   pantallas verticales + margen para la rotación). Mismo encuadre, ~11 KB menos.
+   Los teléfonos en horizontal superan los 679px CSS y reciben la de desktop. */
+@media (max-width:679px){
+  .hero::before{background-image:url('assets/templo_hero-480.webp')}
 }
 /* Velos oscuros (variante B): densos arriba para el texto, livianos abajo para que
    respiren el resplandor de la puerta y la "G". Leve sesgo a la izquierda. Van sin
@@ -309,17 +298,25 @@ summary:hover{color:var(--c-accent-2);padding-left:6px}
 /* Indicador +/– como dos barras: la vertical rota 90° y se pliega sobre la horizontal */
 summary::before,
 summary::after{
-  content:"";position:absolute;right:14px;top:50%;background:var(--c-accent);
+  content:"";position:absolute;right:14px;top:50%;
   transition:transform var(--dur-media) var(--ease-reloj);
 }
-summary::before{width:2px;height:16px;transform:translate(50%,-50%) rotate(0deg)}
-summary::after{width:16px;height:2px;transform:translate(50%,-50%)}
+summary::before{width:2px;height:16px;background:var(--c-accent);transform:translate(50%,-50%) rotate(0deg)}
+/* La barra horizontal vive dentro de una caja redonda de 16x16 (pintada como
+   gradiente centrado) para que la onda-oro (box-shadow) sea circular y no
+   herede el rectángulo de la barra. El centro queda en el mismo punto. */
+summary::after{
+  width:16px;height:16px;border-radius:50%;
+  background:linear-gradient(var(--c-accent),var(--c-accent)) center/16px 2px no-repeat;
+  transform:translate(50%,-50%);
+}
 details[open] summary::before{transform:translate(50%,-50%) rotate(90deg)}
-/* Onda dorada al abrir: se expande desde el indicador y se disuelve */
-details[open] summary::after{animation:onda-oro .7s var(--ease-reloj)}
+/* Onda dorada al abrir: se expande desde el indicador y se disuelve.
+   Calibración final: amplia (30px), lenta (1.1s) y tenue (oro-15). */
+details[open] summary::after{animation:onda-oro 1.1s var(--ease-reloj)}
 @keyframes onda-oro{
-  0%{box-shadow:0 0 0 0 var(--oro-40)}
-  100%{box-shadow:0 0 0 14px transparent}
+  0%{box-shadow:0 0 0 0 var(--oro-15)}
+  100%{box-shadow:0 0 0 30px transparent}
 }
 .respuesta{padding:0 30px var(--sp-5) 0;color:var(--c-muted);font-size:18px;animation:aparecer .45s var(--ease-reloj)}
 .respuesta p + p{margin-top:var(--sp-4)}
