@@ -111,25 +111,55 @@ module.exports = async (req, res) => {
     { role: 'user', parts: [{ text: message }] },
   ];
 
-  let geminiResponse;
-  try {
-    geminiResponse = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-        contents,
-      }),
-    });
-  } catch (err) {
-    console.error('Error de red llamando a Gemini:', err.message);
-    return res.status(502).json({ error: 'No se pudo contactar al Guardián. Probá de nuevo en un momento.' });
+  // Llamada a Gemini con reintentos silenciosos: si el modelo está saturado
+  // (503) o nos limita (429), se espera 1s y luego 2s antes de reintentar,
+  // hasta 2 veces. La mayoría de los picos de demanda se resuelven así y el
+  // visitante solo nota una respuesta apenas más lenta.
+  //
+  // Nota: los errores se devuelven con status 500 (no 502/504) a propósito.
+  // El dominio pasa por el proxy de Cloudflare, que reemplaza los 502/504 del
+  // origen por su propia página HTML, y eso impide que el mensaje amable en
+  // JSON llegue al navegador.
+  const ESPERAS_MS = [1000, 2000];
+  const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  let geminiResponse = null;
+  let errorDeRed = null;
+  for (let intento = 0; intento <= ESPERAS_MS.length; intento++) {
+    if (intento > 0) await esperar(ESPERAS_MS[intento - 1]);
+    try {
+      geminiResponse = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+          contents,
+        }),
+      });
+      errorDeRed = null;
+    } catch (err) {
+      errorDeRed = err;
+      console.warn(`Error de red llamando a Gemini (intento ${intento + 1}):`, err.message);
+      continue;
+    }
+    if (geminiResponse.status !== 503 && geminiResponse.status !== 429) break;
+    console.warn(`Gemini saturado (${geminiResponse.status}), intento ${intento + 1} de ${ESPERAS_MS.length + 1}.`);
+  }
+
+  if (errorDeRed) {
+    console.error('Error de red llamando a Gemini (todos los intentos):', errorDeRed.message);
+    return res.status(500).json({ error: 'No se pudo contactar al Guardián. Probá de nuevo en un momento.' });
+  }
+
+  if (geminiResponse.status === 503 || geminiResponse.status === 429) {
+    console.error('Gemini sigue saturado después de los reintentos:', geminiResponse.status);
+    return res.status(500).json({ error: 'El Guardián está atendiendo a muchos visitantes en este momento. Esperá un instante y volvé a intentar.' });
   }
 
   if (!geminiResponse.ok) {
     const errorBody = await geminiResponse.text().catch(() => '');
     console.error('Gemini respondió con error:', geminiResponse.status, errorBody);
-    return res.status(502).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
+    return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
   }
 
   let data;
@@ -137,13 +167,13 @@ module.exports = async (req, res) => {
     data = await geminiResponse.json();
   } catch (err) {
     console.error('Respuesta de Gemini no es JSON válido:', err.message);
-    return res.status(502).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
+    return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
   }
 
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (typeof reply !== 'string' || reply.trim().length === 0) {
     console.error('Respuesta de Gemini sin texto utilizable:', JSON.stringify(data).slice(0, 500));
-    return res.status(502).json({ error: 'El Guardián no pudo generar una respuesta. Probá reformular tu pregunta.' });
+    return res.status(500).json({ error: 'El Guardián no pudo generar una respuesta. Probá reformular tu pregunta.' });
   }
 
   await registrarTurno(convId, message, reply);
