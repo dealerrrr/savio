@@ -17,3 +17,7 @@ export default function middleware(request) {
     headers: { 'WWW-Authenticate': 'Basic realm="Acceso restringido"' },
   });
 }
+
+export const config = {
+  matcher: ['/((?!api/).*)'],
+};
