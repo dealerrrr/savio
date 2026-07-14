@@ -179,7 +179,30 @@
     // depende de ninguna excepción al CSP. El enlace abre en la misma pestaña,
     // igual que "Ir al formulario" de la burbuja de fallo (destino de conversión).
     const URL_REGEX = /https?:\/\/[^\s<]+/g;
-    const insertarTextoConEnlaces = (contenedor, texto) => {
+
+    // Invitación a admisión. El Guardián escribe el marcador [[ADMISION]] y el
+    // cliente lo expande a una frase natural con la parte "ancla" clickeable.
+    // Así el link de admisión NUNCA se ve desnudo (requisito del proyecto) y la
+    // redacción la controla el cliente, no el modelo (que es estocástico).
+    const MARCADOR_ADMISION = '[[ADMISION]]';
+    const ADMISION_PREFIJO = 'Cuando lo sientas, podés ';
+    const ADMISION_ANCLA = 'dejar tus datos de contacto';
+    const ADMISION_SUFIJO = ' para iniciar el proceso de admisión o despejar cualquier duda con un integrante de la logia.';
+    const ADMISION_TEXTO_PLANO = ADMISION_PREFIJO + ADMISION_ANCLA + ADMISION_SUFIJO;
+
+    // Inserta prefijo + <a>ancla</a> + sufijo en el contenedor.
+    const insertarFragmentoAdmision = (contenedor) => {
+      contenedor.appendChild(document.createTextNode(ADMISION_PREFIJO));
+      const enlace = document.createElement('a');
+      enlace.href = URL_ADMISION;
+      enlace.textContent = ADMISION_ANCLA;
+      enlace.className = 'burbuja-enlace';
+      contenedor.appendChild(enlace);
+      contenedor.appendChild(document.createTextNode(ADMISION_SUFIJO));
+    };
+
+    // Linkifica las URLs sueltas de un tramo de texto (sin marcador).
+    const linkificarTramo = (contenedor, texto) => {
       let ultimo = 0;
       for (const coincidencia of texto.matchAll(URL_REGEX)) {
         let url = coincidencia[0];
@@ -193,7 +216,10 @@
         }
         const enlace = document.createElement('a');
         enlace.href = url;
-        enlace.textContent = url;
+        // Red de seguridad: si el modelo igual escribe la URL de admisión (por
+        // ejemplo citando el material), tampoco se muestra desnuda: se rotula
+        // con el texto ancla, no con la URL.
+        enlace.textContent = url.includes('lasavio.com.ar/admision') ? ADMISION_ANCLA : url;
         enlace.className = 'burbuja-enlace';
         contenedor.appendChild(enlace);
         if (sobrante) contenedor.appendChild(document.createTextNode(sobrante));
@@ -202,6 +228,28 @@
       if (ultimo < texto.length) {
         contenedor.appendChild(document.createTextNode(texto.slice(ultimo)));
       }
+    };
+
+    const insertarTextoConEnlaces = (contenedor, texto) => {
+      const partes = texto.split(MARCADOR_ADMISION);
+      partes.forEach((parte, i) => {
+        if (i > 0) insertarFragmentoAdmision(contenedor);
+        if (parte) linkificarTramo(contenedor, parte);
+      });
+    };
+
+    // Texto plano para el pintado progresivo del stream: el marcador completo se
+    // muestra ya como la frase final (todavía sin link) y un marcador a medio
+    // llegar ("[", "[[ADMIS"...) se recorta para que no parpadee.
+    const textoParaMostrar = (texto) => {
+      let visible = texto.split(MARCADOR_ADMISION).join(ADMISION_TEXTO_PLANO);
+      for (let n = MARCADOR_ADMISION.length - 1; n >= 1; n -= 1) {
+        if (visible.endsWith(MARCADOR_ADMISION.slice(0, n))) {
+          visible = visible.slice(0, -n);
+          break;
+        }
+      }
+      return visible;
     };
 
     const agregarBurbuja = (texto, clase) => {
@@ -397,7 +445,7 @@
             burbuja = agregarBurbuja('');
           }
           texto += evento.text;
-          burbuja.textContent = texto;
+          burbuja.textContent = textoParaMostrar(texto);
           chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
         }
       };
