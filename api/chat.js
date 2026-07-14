@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error('GEMINI_API_KEY no está configurada.');
-    return res.status(500).json({ error: 'El Guardián no está disponible en este momento.' });
+    return res.status(500).json({ error: 'El Guardián no está disponible en este momento.', retryable: false });
   }
 
   const body = req.body || {};
@@ -156,10 +156,21 @@ module.exports = async (req, res) => {
   // El dominio pasa por el proxy de Cloudflare, que reemplaza los 502/504 del
   // origen por su propia página HTML, y eso impide que el mensaje amable en
   // JSON llegue al navegador.
-  const cuerpoPedido = JSON.stringify({
+  const pedidoBase = {
     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
     contents,
-  });
+  };
+
+  // Desactivar el "pensamiento" del modelo (PLAN, capa 5). El Guardián no
+  // razona en cadena: responde corto y guionado, así que el thinking solo
+  // agrega latencia. La API cambió de campo según la familia del modelo, y
+  // mandar el campo equivocado devuelve 400, así que se arma por modelo:
+  //   - Gemini 3.x: generationConfig.thinkingConfig.thinkingLevel = 'minimal'.
+  //   - Gemini 2.5: thinkingLevel no existe; se usa thinkingBudget = 0.
+  const generationConfigPara = (modelo) =>
+    modelo.startsWith('gemini-2.5')
+      ? { thinkingConfig: { thinkingBudget: 0 } }
+      : { thinkingConfig: { thinkingLevel: 'minimal' } };
 
   let geminiResponse = null;
   let errorDeRed = null;
@@ -173,7 +184,7 @@ module.exports = async (req, res) => {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: cuerpoPedido,
+          body: JSON.stringify({ ...pedidoBase, generationConfig: generationConfigPara(modelo) }),
         },
         TIMEOUT_GEMINI_MS,
       );
@@ -201,16 +212,16 @@ module.exports = async (req, res) => {
     // nunca por cuota propia con modelos aún disponibles.
     if (huboSaturacion) {
       console.error('Todos los modelos saturados (429/503) tras el fallback.');
-      return res.status(500).json({ error: 'El Guardián está atendiendo a muchos visitantes en este momento. Esperá un instante y volvé a intentar.' });
+      return res.status(500).json({ error: 'El Guardián está atendiendo a muchos visitantes en este momento. Esperá un instante y volvé a intentar.', retryable: true });
     }
     console.error('Error de red/timeout en todos los modelos:', errorDeRed && errorDeRed.message);
-    return res.status(500).json({ error: 'No se pudo contactar al Guardián. Probá de nuevo en un momento.' });
+    return res.status(500).json({ error: 'No se pudo contactar al Guardián. Probá de nuevo en un momento.', retryable: true });
   }
 
   if (!geminiResponse.ok) {
     const errorBody = await geminiResponse.text().catch(() => '');
     console.error('Gemini respondió con error:', geminiResponse.status, errorBody);
-    return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
+    return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.', retryable: false });
   }
 
   // A partir de acá el modelo respondió 200 y empieza a streamear. Pasamos a

@@ -534,9 +534,14 @@
           continue;
         }
 
-        // Error del server (500, 400, etc.): reintentar con token nuevo.
+        // Error del server (500, 400, etc.): reintentar con token nuevo, salvo
+        // que el server marque el fallo como definitivo (retryable:false), en
+        // cuyo caso reintentar no sirve y cortamos el loop para fallar rápido.
         ultimoStatus = respuesta.status;
         if (window.turnstile) window.turnstile.reset();
+        let sobre = null;
+        try { sobre = await respuesta.json(); } catch (_) {}
+        if (sobre && sobre.retryable === false) break;
       }
 
       if (!ok) {
