@@ -401,6 +401,8 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
 }
 .burbuja-reintentar:hover{background:var(--c-accent-2)}
 .burbuja-alternativa{color:var(--c-accent-2);text-decoration:underline;font-size:15px}
+/* Enlaces que el Guardián incluye en su respuesta (p. ej. formulario de admisión). */
+.burbuja-enlace{color:var(--c-accent-2);text-decoration:underline;word-break:break-word}
 
 .chat-pie{display:flex;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--c-border);background:var(--c-surface-2)}
 .chat-pie input{

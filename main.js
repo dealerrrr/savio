@@ -171,10 +171,49 @@
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+    // El Guardián a veces incluye URLs en su respuesta (p. ej. el formulario de
+    // admisión). Antes se insertaban con textContent y quedaban como texto
+    // plano, no clickeables. Acá partimos el texto en tramos y convertimos cada
+    // URL en un <a>. Los nodos se arman con el DOM (createTextNode +
+    // createElement), nunca con innerHTML: no hay riesgo de inyección y no
+    // depende de ninguna excepción al CSP. El enlace abre en la misma pestaña,
+    // igual que "Ir al formulario" de la burbuja de fallo (destino de conversión).
+    const URL_REGEX = /https?:\/\/[^\s<]+/g;
+    const insertarTextoConEnlaces = (contenedor, texto) => {
+      let ultimo = 0;
+      for (const coincidencia of texto.matchAll(URL_REGEX)) {
+        let url = coincidencia[0];
+        const indice = coincidencia.index;
+        // La puntuación de cierre pegada a la URL (. , ; : ! ? ) ] } " ') no es
+        // parte del enlace: se recorta y se vuelve a agregar como texto.
+        const sobrante = (url.match(/[.,;:!?)\]}'"]+$/) || [''])[0];
+        if (sobrante) url = url.slice(0, -sobrante.length);
+        if (indice > ultimo) {
+          contenedor.appendChild(document.createTextNode(texto.slice(ultimo, indice)));
+        }
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.textContent = url;
+        enlace.className = 'burbuja-enlace';
+        contenedor.appendChild(enlace);
+        if (sobrante) contenedor.appendChild(document.createTextNode(sobrante));
+        ultimo = indice + url.length + sobrante.length;
+      }
+      if (ultimo < texto.length) {
+        contenedor.appendChild(document.createTextNode(texto.slice(ultimo)));
+      }
+    };
+
     const agregarBurbuja = (texto, clase) => {
       const burbuja = document.createElement('div');
       burbuja.className = clase ? `burbuja burbuja--nueva ${clase}` : 'burbuja burbuja--nueva';
-      burbuja.textContent = texto;
+      // Solo linkeamos las respuestas del Guardián (sin clase 'burbuja--visitante').
+      // Lo que escribe el visitante queda como texto plano.
+      if (clase === 'burbuja--visitante') {
+        burbuja.textContent = texto;
+      } else {
+        insertarTextoConEnlaces(burbuja, texto);
+      }
       chatCuerpo.appendChild(burbuja);
       chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
       return burbuja;
