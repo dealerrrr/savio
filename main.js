@@ -265,7 +265,143 @@
       }
     }
 
-    chatForm.addEventListener('submit', async (e) => {
+    // Capa 2 del PLAN-GUARDIAN-WORLD-CLASS.md (resiliencia de la conversación):
+    // nunca perder el mensaje, auto-reintento en personaje, fix de la carrera
+    // de Turnstile y degradación elegante al formulario.
+    const TOPE_HISTORIAL = 40;      // debe coincidir con MAX_HISTORY_TURNS del server
+    const MAX_INTENTOS = 2;         // reintentos automáticos antes de mostrar el fallo
+    const ESPERA_REINTENTO_MS = 1200;
+    const URL_ADMISION = 'https://lasavio.com.ar/admision/';
+    const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // Fix de la carrera de Turnstile: tras cada envío reseteamos el widget para
+    // pedir un token nuevo, pero getResponse() devuelve '' hasta que ese token
+    // está listo. Leerlo a ciegas hacía que el 2.º mensaje rápido saliera sin
+    // token y el server respondiera 403 "Falta verificación". Acá esperamos a
+    // que haya token fresco (hasta 3s) antes de enviar.
+    const esperarToken = async (timeoutMs = 3000) => {
+      if (!window.turnstile) return undefined;
+      const inicio = Date.now();
+      let token = window.turnstile.getResponse();
+      while (!token && Date.now() - inicio < timeoutMs) {
+        await esperar(100);
+        token = window.turnstile.getResponse();
+      }
+      return token || undefined;
+    };
+
+    // Degradación elegante: si toda la cadena falla, el Guardián no abandona.
+    // Ofrece Reintentar (reenvía el mismo mensaje, que no se pierde) y el camino
+    // alternativo al formulario de admisión. La conversión no depende de que el
+    // modelo esté vivo.
+    const mostrarFallo = (mensaje) => {
+      const burbuja = document.createElement('div');
+      burbuja.className = 'burbuja burbuja--nueva burbuja--fallo';
+
+      const texto = document.createElement('p');
+      texto.className = 'burbuja-texto';
+      texto.textContent = 'El Guardián no pudo responder en este momento. Podés intentarlo de nuevo o dejar tu inquietud en el formulario de admisión.';
+      burbuja.appendChild(texto);
+
+      const acciones = document.createElement('div');
+      acciones.className = 'burbuja-acciones';
+
+      const reintentar = document.createElement('button');
+      reintentar.type = 'button';
+      reintentar.className = 'burbuja-reintentar';
+      reintentar.textContent = 'Reintentar';
+      reintentar.addEventListener('click', () => {
+        burbuja.remove();
+        // nuevaBurbuja:false porque la burbuja del visitante ya está en pantalla.
+        enviarMensaje(mensaje, { nuevaBurbuja: false });
+      });
+      acciones.appendChild(reintentar);
+
+      const alternativa = document.createElement('a');
+      alternativa.className = 'burbuja-alternativa';
+      alternativa.href = URL_ADMISION;
+      alternativa.textContent = 'Ir al formulario';
+      acciones.appendChild(alternativa);
+
+      burbuja.appendChild(acciones);
+      chatCuerpo.appendChild(burbuja);
+      chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+    };
+
+    // Envía un mensaje con reintentos automáticos "en personaje": el indicador
+    // de escritura se mantiene entre intentos, así el visitante no ve los fallos
+    // transitorios, solo una respuesta apenas más lenta. Tras MAX_INTENTOS sin
+    // éxito, muestra la burbuja de fallo. El mensaje nunca se pierde.
+    const enviarMensaje = async (mensaje, { nuevaBurbuja = true } = {}) => {
+      if (nuevaBurbuja) agregarBurbuja(mensaje, 'burbuja--visitante');
+      alternarEnvio(true);
+      const indicador = agregarIndicador();
+
+      let ok = false;
+      let ultimoStatus = 0;
+
+      for (let intento = 1; intento <= MAX_INTENTOS; intento++) {
+        if (intento > 1) await esperar(ESPERA_REINTENTO_MS);
+
+        const turnstileToken = await esperarToken();
+
+        let respuesta;
+        try {
+          respuesta = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: mensaje, history: historial, convId, turnstileToken }),
+          });
+        } catch (err) {
+          // Error de red: reintentar con token nuevo.
+          ultimoStatus = 0;
+          if (window.turnstile) window.turnstile.reset();
+          continue;
+        }
+
+        if (respuesta.status === 403) {
+          // Token vencido o ausente: pedimos uno nuevo y reintentamos.
+          ultimoStatus = 403;
+          if (window.turnstile) window.turnstile.reset();
+          continue;
+        }
+
+        const datos = await respuesta.json().catch(() => ({}));
+
+        if (respuesta.ok && typeof datos.reply === 'string') {
+          indicador.remove();
+          agregarBurbuja(datos.reply);
+          historial.push({ role: 'user', text: mensaje });
+          historial.push({ role: 'model', text: datos.reply });
+          // Tope de historial en cliente (PLAN, sección 5.4): no crece sin fin.
+          if (historial.length > TOPE_HISTORIAL) {
+            historial.splice(0, historial.length - TOPE_HISTORIAL);
+          }
+          // Micro-conversión clave: el Guardián derivó al formulario de entrevista.
+          if (/entrevista/i.test(datos.reply)) track('guardian_derivacion');
+          ok = true;
+          break;
+        }
+
+        // Error del server (500, 400, etc.): reintentar con token nuevo.
+        ultimoStatus = respuesta.status;
+        if (window.turnstile) window.turnstile.reset();
+      }
+
+      if (!ok) {
+        indicador.remove();
+        // Observabilidad (PLAN, capa 5): cada fallo visible queda medido para
+        // poder calcular la disponibilidad real.
+        track('guardian_error', { status: ultimoStatus });
+        mostrarFallo(mensaje);
+      }
+
+      if (window.turnstile) window.turnstile.reset();
+      alternarEnvio(false);
+      if (chatInput) chatInput.focus({ preventScroll: true });
+    };
+
+    chatForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (enviando || !chatInput) return;
 
@@ -275,41 +411,8 @@
       if (historial.length === 0) track('guardian_primer_mensaje');
       track('guardian_mensaje');
 
-      agregarBurbuja(mensaje, 'burbuja--visitante');
       chatInput.value = '';
-      alternarEnvio(true);
-      const indicador = agregarIndicador();
-
-      const turnstileToken = window.turnstile ? window.turnstile.getResponse() : undefined;
-
-      try {
-        const respuesta = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: mensaje, history: historial, convId, turnstileToken }),
-        });
-        const datos = await respuesta.json().catch(() => ({}));
-        indicador.remove();
-
-        if (!respuesta.ok || typeof datos.reply !== 'string') {
-          agregarBurbuja(datos.error || 'El Guardián no pudo responder. Probá de nuevo en un momento.');
-          return;
-        }
-
-        agregarBurbuja(datos.reply);
-        historial.push({ role: 'user', text: mensaje });
-        historial.push({ role: 'model', text: datos.reply });
-
-        // Micro-conversión clave: el Guardián derivó al formulario de entrevista.
-        if (/entrevista/i.test(datos.reply)) track('guardian_derivacion');
-      } catch (err) {
-        indicador.remove();
-        agregarBurbuja('No se pudo conectar con el Guardián. Revisá tu conexión y probá de nuevo.');
-      } finally {
-        if (window.turnstile) window.turnstile.reset();
-        alternarEnvio(false);
-        chatInput.focus({ preventScroll: true });
-      }
+      enviarMensaje(mensaje);
     });
   }
 

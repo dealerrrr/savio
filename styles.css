@@ -388,6 +388,20 @@ figure figcaption{margin-top:var(--sp-2);font-size:var(--t-small);color:var(--c-
   .burbuja--cargando .punto{animation:none;opacity:1}
   .burbuja--nueva{animation:none}
 }
+/* Burbuja de fallo del Guardián: texto + acciones (Reintentar / formulario).
+   Las clases viven acá, no como estilos inline, porque el CSP del sitio
+   (style-src 'self', sin 'unsafe-inline') bloquea los atributos style. */
+.burbuja--fallo{white-space:normal}
+.burbuja-texto{margin:0}
+.burbuja-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3);margin-top:var(--sp-3)}
+.burbuja-reintentar{
+  background:var(--c-accent);border:0;border-radius:var(--r-sm);color:var(--c-bg);
+  font-family:var(--f-sans);font-weight:500;font-size:14px;padding:9px 16px;cursor:pointer;
+  transition:background var(--dur-micro) var(--ease-reloj);
+}
+.burbuja-reintentar:hover{background:var(--c-accent-2)}
+.burbuja-alternativa{color:var(--c-accent-2);text-decoration:underline;font-size:15px}
+
 .chat-pie{display:flex;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--c-border);background:var(--c-surface-2)}
 .chat-pie input{
   flex:1;min-width:0;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--r-sm);
