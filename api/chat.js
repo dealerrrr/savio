@@ -30,12 +30,18 @@ const { verificarTurnstile } = require('../lib/turnstile');
 // tiene su propio cupo. Si el primero está saturado (429) o caído (503), se
 // pasa al siguiente sin que el visitante lo note.
 const MODELOS_FALLBACK = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'];
-const GEMINI_ENDPOINT = (modelo) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`;
+// Endpoint de streaming (PLAN, sección 5.2). Con `?alt=sse` Gemini devuelve
+// Server-Sent Events: un chunk por fragmento de texto, que reenviamos al
+// navegador para pintar la respuesta palabra por palabra. Sin `alt=sse`
+// devolvería un único array JSON al final (sin streaming).
+const GEMINI_ENDPOINT_STREAM = (modelo) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:streamGenerateContent`;
 
-// Timeout por llamada (PLAN, capa 1). Un fetch colgado del lado de Google no
-// puede comerse toda la función: se aborta a los 12s y se prueba el siguiente
-// modelo. 3 modelos x 12s = 36s de piso, dentro del maxDuration de vercel.json.
+// Timeout hasta el primer byte (PLAN, capa 1). fetchConTimeout aborta solo si
+// las cabeceras de Google no llegan en 12s; una vez que la respuesta empieza,
+// el timer se limpia y el stream puede durar lo que haga falta. Así un fetch
+// colgado no cuelga la función, pero una respuesta larga no se corta a mitad.
+// 3 modelos x 12s = 36s de piso hasta el primer byte, dentro del maxDuration.
 const TIMEOUT_GEMINI_MS = 12000;
 
 const MAX_MESSAGE_LENGTH = 2000;
@@ -163,7 +169,7 @@ module.exports = async (req, res) => {
     let respuesta;
     try {
       respuesta = await fetchConTimeout(
-        `${GEMINI_ENDPOINT(modelo)}?key=${apiKey}`,
+        `${GEMINI_ENDPOINT_STREAM(modelo)}?alt=sse&key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -207,21 +213,65 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
   }
 
-  let data;
+  // A partir de acá el modelo respondió 200 y empieza a streamear. Pasamos a
+  // modo SSE: reenviamos cada fragmento de texto al navegador apenas llega
+  // (PLAN, sección 5.2). Las cabeceras anti-buffering le piden a Vercel y a
+  // Cloudflare que no acumulen el stream y lo entreguen entero al final.
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  const reader = geminiResponse.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let replyCompleto = '';
+
   try {
-    data = await geminiResponse.json();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // Gemini manda líneas `data: {json}` separadas por saltos de línea.
+      // Procesamos línea a línea y guardamos el resto parcial en el buffer.
+      let corte;
+      while ((corte = buffer.indexOf('\n')) !== -1) {
+        const linea = buffer.slice(0, corte).trim();
+        buffer = buffer.slice(corte + 1);
+        if (!linea.startsWith('data:')) continue;
+        const json = linea.slice(5).trim();
+        if (!json) continue;
+        let parsed;
+        try {
+          parsed = JSON.parse(json);
+        } catch (err) {
+          continue;
+        }
+        const fragmento = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (typeof fragmento === 'string' && fragmento.length > 0) {
+          replyCompleto += fragmento;
+          res.write(`data: ${JSON.stringify({ text: fragmento })}\n\n`);
+        }
+      }
+    }
   } catch (err) {
-    console.error('Respuesta de Gemini no es JSON válido:', err.message);
-    return res.status(500).json({ error: 'El Guardián tuvo un problema para responder. Probá de nuevo en un momento.' });
+    console.error('Error leyendo el stream de Gemini:', err.message);
   }
 
-  const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof reply !== 'string' || reply.trim().length === 0) {
-    console.error('Respuesta de Gemini sin texto utilizable:', JSON.stringify(data).slice(0, 500));
-    return res.status(500).json({ error: 'El Guardián no pudo generar una respuesta. Probá reformular tu pregunta.' });
+  // Respuesta vacía o bloqueo de seguridad (200 sin texto): avisamos con un
+  // evento de error para que el cliente muestre el camino alternativo.
+  if (replyCompleto.trim().length === 0) {
+    console.error('Stream de Gemini sin texto utilizable.');
+    res.write(`data: ${JSON.stringify({ error: 'El Guardián no pudo generar una respuesta. Probá reformular tu pregunta.' })}\n\n`);
+    return res.end();
   }
 
-  await registrarTurno(convId, message, reply);
+  // Registramos antes de cerrar para que la función no se termine antes de
+  // completar el RPUSH. El visitante ya vio todo el texto, así que estos
+  // milisegundos no afectan la latencia percibida.
+  await registrarTurno(convId, message, replyCompleto);
 
-  return res.status(200).json({ reply });
+  res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+  return res.end();
 };

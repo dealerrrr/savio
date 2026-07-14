@@ -367,6 +367,66 @@
       chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
     };
 
+    // Lee la respuesta SSE del server (PLAN, sección 5.2) y pinta el texto a
+    // medida que llega. La burbuja se crea recién con el primer fragmento, así
+    // el indicador de tres puntos queda hasta ese momento. Durante el stream el
+    // texto va como texto plano; al cerrar, se re-renderiza con enlaces
+    // clickeables (el formulario de admisión). Devuelve { ok } según si llegó
+    // algo de texto: si no llegó nada (bloqueo o respuesta vacía), el llamador
+    // reintenta con token nuevo sin que haya quedado ninguna burbuja a medias.
+    const consumirStream = async (respuesta, indicador) => {
+      const reader = respuesta.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let texto = '';
+      let burbuja = null;
+
+      const procesarLinea = (linea) => {
+        if (!linea.startsWith('data:')) return;
+        const json = linea.slice(5).trim();
+        if (!json) return;
+        let evento;
+        try {
+          evento = JSON.parse(json);
+        } catch (err) {
+          return;
+        }
+        if (typeof evento.text === 'string' && evento.text.length > 0) {
+          if (!burbuja) {
+            indicador.remove();
+            burbuja = agregarBurbuja('');
+          }
+          texto += evento.text;
+          burbuja.textContent = texto;
+          chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+        }
+      };
+
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let corte;
+          while ((corte = buffer.indexOf('\n')) !== -1) {
+            procesarLinea(buffer.slice(0, corte).trim());
+            buffer = buffer.slice(corte + 1);
+          }
+        }
+        if (buffer.trim()) procesarLinea(buffer.trim());
+      } catch (err) {
+        // Corte de red a mitad del stream: conservamos lo ya pintado.
+      }
+
+      if (texto.length === 0) return { ok: false };
+
+      // Re-render final con enlaces clickeables.
+      burbuja.textContent = '';
+      insertarTextoConEnlaces(burbuja, texto);
+      chatCuerpo.scrollTop = chatCuerpo.scrollHeight;
+      return { ok: true, texto };
+    };
+
     // Envía un mensaje con reintentos automáticos "en personaje": el indicador
     // de escritura se mantiene entre intentos, así el visitante no ve los fallos
     // transitorios, solo una respuesta apenas más lenta. Tras MAX_INTENTOS sin
@@ -405,21 +465,25 @@
           continue;
         }
 
-        const datos = await respuesta.json().catch(() => ({}));
-
-        if (respuesta.ok && typeof datos.reply === 'string') {
-          indicador.remove();
-          agregarBurbuja(datos.reply);
-          historial.push({ role: 'user', text: mensaje });
-          historial.push({ role: 'model', text: datos.reply });
-          // Tope de historial en cliente (PLAN, sección 5.4): no crece sin fin.
-          if (historial.length > TOPE_HISTORIAL) {
-            historial.splice(0, historial.length - TOPE_HISTORIAL);
+        const tipo = respuesta.headers.get('content-type') || '';
+        if (respuesta.ok && tipo.includes('text/event-stream')) {
+          const resultado = await consumirStream(respuesta, indicador);
+          if (resultado.ok) {
+            historial.push({ role: 'user', text: mensaje });
+            historial.push({ role: 'model', text: resultado.texto });
+            // Tope de historial en cliente (PLAN, sección 5.4): no crece sin fin.
+            if (historial.length > TOPE_HISTORIAL) {
+              historial.splice(0, historial.length - TOPE_HISTORIAL);
+            }
+            // Micro-conversión clave: el Guardián derivó al formulario de entrevista.
+            if (/entrevista/i.test(resultado.texto)) track('guardian_derivacion');
+            ok = true;
+            break;
           }
-          // Micro-conversión clave: el Guardián derivó al formulario de entrevista.
-          if (/entrevista/i.test(datos.reply)) track('guardian_derivacion');
-          ok = true;
-          break;
+          // Stream sin texto (bloqueo o respuesta vacía): reintentar con token nuevo.
+          ultimoStatus = respuesta.status;
+          if (window.turnstile) window.turnstile.reset();
+          continue;
         }
 
         // Error del server (500, 400, etc.): reintentar con token nuevo.
