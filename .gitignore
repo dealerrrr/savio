@@ -15,5 +15,3 @@ node_modules
 documentos
 
 # Restringir acceso
-middleware.js
-package.json

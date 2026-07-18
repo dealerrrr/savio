@@ -5,7 +5,7 @@ Contacto: info@lasavio.com.ar
 Ubicación: San Nicolás de los Arroyos, Buenos Aires, Argentina
 
 /* SITE */
-Última actualización: 2026-07-03
+Última actualización: 2026-07-17
 Stack: HTML5, CSS3, JavaScript (sitio estático)
 Hosting: Vercel
 DNS: Cloudflare
